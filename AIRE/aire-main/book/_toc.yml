@@ -1,0 +1,97 @@
+# updating for latest jupyter book version
+format: jb-book
+# ===== Main Landing Page ===========================
+root: welcome
+# ===== Getting Started =============================
+chapters:
+- file: getting_started/start
+  sections:
+  # - file: getting_started/expectations
+  - file: getting_started/request_account
+  - file: getting_started/logging_on
+  # - file: getting_started/faq
+  - file: getting_started/request_software
+  - file: getting_started/rules_regulations
+    title: Rules & Regulations
+# ===== System Overview =============================
+- file: system/start
+  sections:
+  - file: system/hpc_architecture
+  - file: system/compute_node_types
+  - file: system/storage_filesystem
+  - file: system/job_scheduler
+  - file: system/modules_and_applications
+  - file: system/linux_user_environment
+# ===== Using Aire ==================================
+- file: usage/start
+  sections:
+  - file: usage/job_type
+  - file: usage/job_example
+  - file: usage/file_data_management/start
+    sections:
+    - file: usage/file_data_management/best_practices
+    - file: usage/file_data_management/storage_options
+    #- file: usage/file_data_management/data_lifecycle_management
+    - file: usage/file_data_management/filesystem_quotas
+    - file: usage/file_data_management/data_transfer
+    - file: usage/file_data_management/data_sharing
+  - file: usage/dependency_management
+  #- file: usage/use_of_containers
+# ===== Software on Aire ============================
+- file: software/start
+  sections:
+  - file: software/applications/start
+    sections:
+    - file: software/applications/abaqus
+    - file: software/applications/ansys
+      sections:
+      - file: software/applications/ansys/ansys_cli
+      - file: software/applications/ansys/cfx
+      - file: software/applications/ansys/chemkin
+      - file: software/applications/ansys/fluent
+      - file: software/applications/ansys/ls-dyna
+    - file: software/applications/castep
+    - file: software/applications/comsol
+  #   - file: software/applications/gromacs
+    - file: software/applications/matlab
+    - file: software/applications/openfoam
+    - file: software/applications/orca
+  #   - file: software/applications/paraview
+  #   - file: software/applications/stata  
+  # - file: software/compilers/start
+  #   sections:
+  #   - file: software/compilers/cuda
+  #   - file: software/compilers/gnu
+  #   - file: software/compilers/intel
+  - file: software/libraries/start
+    sections:
+    - file: software/libraries/dask
+    - file: software/libraries/fftw
+    - file: software/libraries/hdf5
+    - file: software/libraries/lapack
+    - file: software/libraries/netcdf
+    - file: software/libraries/netcdf-fortran
+    - file: software/libraries/openblas 
+    - file: software/libraries/openmpi
+  #   - file: software/libraries/pytorch
+    - file: software/libraries/vtk
+  - file: software/interpreters/start
+    sections:
+  #   - file: software/interpreters/julia
+    - file: software/interpreters/miniforge
+  #   - file: software/interpreters/python
+  #   - file: software/interpreters/r
+  - file: software/tools/start
+    sections:
+    - file: software/tools/apptainer
+    - file: software/tools/cmake
+  #   - file: software/tools/pixi
+    - file: software/tools/spack
+    - file: software/tools/texlive
+# ===== Training and Support ========================
+- url: https://arc.leeds.ac.uk/courses/
+  title: Training Courses
+- file: support/start
+  title: Contact Us
+- url: https://arc.leeds.ac.uk
+  title: Research Computing Website

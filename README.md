@@ -12,7 +12,7 @@ ARC works with Sun of Grid Engine scheduler, some useful commands are:
 * qstat
 * qdel jobID
 
-Bede and Jade2 work with SLURM scheduler, some useful commands are:
+Aire, Bede and Jade2 work with SLURM scheduler, some useful commands are:
 
 * sbatch file.sh
 * squeue -u username --start
