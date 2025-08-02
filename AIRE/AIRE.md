@@ -15,7 +15,7 @@ This comprehensive guide covers everything you need to know about running jobs o
 
 **GPU Nodes (28 nodes)**
 - Dell R7615 servers
-- 3x NVIDIA L40S 48GB GPUs per node
+- **3x NVIDIA L40S 48GB GPUs per node (maximum 3 GPUs per node)**
 - AMD 24-core 2.9GHz CPU per node
 - 256GB DDR5-4800 Memory per node
 - Total: 84 GPU cards
@@ -92,6 +92,15 @@ mpirun python your_mpi_script.py
 
 ### 2. GPU Jobs
 
+**Important GPU Constraints:**
+- **Maximum 3 GPUs per node** (hardware limitation)
+- For >3 GPUs, use multi-node allocation
+- Default resources: 1 CPU core, 1GB memory (must request more)
+- Common error "Requested node configuration is not available" means:
+  - Requesting >3 GPUs on single node
+  - Insufficient resources available
+  - All GPU nodes occupied
+
 **Single GPU Job**
 ```bash
 #!/bin/bash
@@ -112,14 +121,14 @@ nvidia-smi
 python your_gpu_script.py
 ```
 
-**Multi-GPU Job (Single Node)**
+**Multi-GPU Job (Single Node - Max 3 GPUs)**
 ```bash
 #!/bin/bash
 #SBATCH --job-name=gpu_multi
 #SBATCH --time=02:00:00
 #SBATCH --partition=gpu
-#SBATCH --gres=gpu:2
-#SBATCH --cpus-per-task=16
+#SBATCH --gres=gpu:3          # Maximum 3 GPUs per node!
+#SBATCH --cpus-per-task=24    # 8 CPUs per GPU
 #SBATCH --mem-per-cpu=8G
 
 module load cuda/12.6.2
@@ -127,12 +136,13 @@ module load miniforge
 conda activate your_ml_env
 
 # Set GPU visibility
-export CUDA_VISIBLE_DEVICES=0,1
+export CUDA_VISIBLE_DEVICES=0,1,2
 
-python your_multi_gpu_script.py
+# For PyTorch multi-GPU
+python -m torch.distributed.launch --nproc_per_node=3 your_script.py
 ```
 
-**Multi-GPU Multi-Node Job**
+**Multi-GPU Multi-Node Job (For >3 GPUs)**
 ```bash
 #!/bin/bash
 #SBATCH --job-name=gpu_distributed
@@ -140,7 +150,7 @@ python your_multi_gpu_script.py
 #SBATCH --partition=gpu
 #SBATCH --nodes=2
 #SBATCH --ntasks-per-node=2
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:2          # 2 GPUs per node = 4 total
 #SBATCH --cpus-per-task=8
 #SBATCH --mem-per-cpu=8G
 
@@ -155,6 +165,37 @@ export MASTER_PORT=29500
 export WORLD_SIZE=$((SLURM_NNODES * SLURM_NTASKS_PER_NODE))
 
 srun python your_distributed_script.py
+```
+
+**4 GPU Job Example (Requires 2 Nodes)**
+```bash
+#!/bin/bash
+#SBATCH --job-name=4gpu_training
+#SBATCH --time=08:00:00
+#SBATCH --partition=gpu
+#SBATCH --nodes=2             # Need 2 nodes for 4 GPUs
+#SBATCH --ntasks-per-node=1
+#SBATCH --gres=gpu:2          # 2 GPUs per node
+#SBATCH --cpus-per-task=16    # 8 CPUs per GPU
+#SBATCH --mem-per-cpu=8G
+
+module load cuda/12.6.2
+module load miniforge
+conda activate your_ml_env
+
+# For torchrun distributed training
+head_node=$(scontrol show hostname $SLURM_NODELIST | head -n1)
+export MASTER_ADDR=$head_node
+export MASTER_PORT=29500
+
+# Use srun to launch torchrun on each node
+srun torchrun \
+    --nnodes=$SLURM_NNODES \
+    --nproc_per_node=2 \
+    --rdzv_id=$SLURM_JOB_ID \
+    --rdzv_backend=c10d \
+    --rdzv_endpoint=$MASTER_ADDR:$MASTER_PORT \
+    your_training_script.py
 ```
 
 ### 3. High-Memory Jobs
@@ -338,9 +379,13 @@ python -c "import torch; print(torch.cuda.is_available())"
 - **CPU**: 1 core for serial, 8-16 for GPU jobs, up to 168 for parallel
 - **Memory**: 
   - CPU jobs: 4-8GB per core
-  - GPU jobs: 8-16GB per GPU
+  - GPU jobs: 8-16GB per GPU (max ~85GB per GPU available)
   - ML training: Often memory-bound, monitor usage
 - **Time**: Add 20% buffer to estimates
+- **GPU Limits**:
+  - Single node: 1-3 GPUs max
+  - Multi-node: 2+ nodes for >3 GPUs
+  - Each GPU node: 24 CPUs, 256GB RAM total
 
 ### 2. Environment Setup
 ```bash
@@ -394,6 +439,24 @@ seff <JOBID>
 sacct -j <JOBID> --format=JobID,JobName,Partition,State,Time,Start,End,NodeList,AllocCPUS,ReqMem,MaxRSS,MaxVMSize
 ```
 
+### GPU Availability Checking
+```bash
+# Check GPU partition status
+sinfo -p gpu
+
+# Check GPU partition with node details
+sinfo -p gpu -o "%N %G %C %m %e %t"
+
+# Check current GPU usage
+squeue -p gpu
+
+# Check specific GPU node availability
+scontrol show node <nodename>
+
+# Quick GPU availability summary
+sinfo -p gpu --Format=nodes,nodelist,gres,cpus,memory,statelong
+```
+
 ### Module Management
 ```bash
 # List available modules
@@ -416,6 +479,10 @@ module purge
 2. **Out of memory**: Reduce batch size or request more memory
 3. **CUDA errors**: Verify GPU allocation and CUDA module loading
 4. **Slow I/O**: Use `$TMP_SHARED` for large datasets
+5. **"Requested node configuration is not available"**:
+   - Requesting >3 GPUs on single node (use multi-node)
+   - Requesting too many CPUs/memory per GPU
+   - Check available resources: `sinfo -p gpu`
 
 ### Debugging Scripts
 ```bash
