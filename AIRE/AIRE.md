@@ -625,6 +625,302 @@ pip freeze > requirements.txt
 pip install -r requirements.txt
 ```
 
+## Git LFS (Large File Storage) Setup
+
+Git LFS is essential for ML projects with large model files, datasets, and checkpoints. Here's comprehensive setup for AIRE:
+
+### Initial Git LFS Setup
+```bash
+# Install Git LFS (if not already available)
+module load git/2.41.0  # Or latest version
+git lfs install
+
+# Initialize LFS in your repository
+cd your_project
+git lfs track "*.pkl"    # Model files
+git lfs track "*.pth"    # PyTorch models
+git lfs track "*.pt"     # PyTorch tensors
+git lfs track "*.ckpt"   # Checkpoints
+git lfs track "*.h5"     # HDF5 files
+git lfs track "*.hdf5"   # HDF5 files
+git lfs track "*.safetensors"  # Safetensors format
+git lfs track "*.onnx"   # ONNX models
+git lfs track "*.pb"     # TensorFlow models
+git lfs track "*.tflite" # TensorFlow Lite
+git lfs track "*.caffemodel"  # Caffe models
+git lfs track "*.npy"    # NumPy arrays
+git lfs track "*.npz"    # Compressed NumPy
+git lfs track "*.zarr"   # Zarr arrays
+git lfs track "*.parquet"  # Parquet files
+git lfs track "*.arrow"  # Arrow files
+git lfs track "*.feather"  # Feather files
+git lfs track "*.bin"    # Binary files
+git lfs track "*.model"  # Generic model files
+git lfs track "*.weights"  # Model weights
+
+# Dataset files
+git lfs track "*.zip"
+git lfs track "*.tar"
+git lfs track "*.tar.gz"
+git lfs track "*.tgz"
+git lfs track "*.gz"
+git lfs track "*.7z"
+git lfs track "*.rar"
+
+# Image datasets
+git lfs track "*.tif"
+git lfs track "*.tiff"
+git lfs track "*.png"
+git lfs track "*.jpg"
+git lfs track "*.jpeg"
+git lfs track "*.bmp"
+git lfs track "*.gif"
+git lfs track "*.svg"
+git lfs track "*.webp"
+
+# Video/Audio for multimodal models
+git lfs track "*.mp4"
+git lfs track "*.avi"
+git lfs track "*.mov"
+git lfs track "*.mkv"
+git lfs track "*.mp3"
+git lfs track "*.wav"
+git lfs track "*.flac"
+
+# Document datasets
+git lfs track "*.pdf"
+git lfs track "*.doc"
+git lfs track "*.docx"
+
+# Logs and results (be selective)
+git lfs track "*.log"  # Only if logs are large
+git lfs track "results/*.csv"  # Large result CSVs
+
+# Add the .gitattributes file
+git add .gitattributes
+git commit -m "Configure Git LFS tracking"
+```
+
+### Essential .gitignore for ML Projects
+Create a comprehensive .gitignore:
+```bash
+cat > .gitignore << 'EOF'
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+*.egg-info/
+.eggs/
+*.egg
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+*.ipynb_checkpoints
+
+# ML/DL frameworks
+.pytorch_models/
+.tensorflow/
+.keras/
+
+# Logs (unless using LFS for large logs)
+logs/
+*.log
+!important.log  # Exception for critical logs
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Data (if not using LFS)
+data/raw/
+data/processed/
+datasets/
+
+# Model outputs (selective)
+outputs/
+checkpoints/
+models/temp/
+*.ckpt.tmp
+
+# Wandb
+wandb/
+offline-run-*
+
+# Slurm
+slurm-*.out
+core.*
+
+# Environment
+.env
+.envrc
+
+# OS
+Thumbs.db
+.directory
+
+# Build artifacts
+build/
+dist/
+*.so
+*.dylib
+*.dll
+EOF
+
+git add .gitignore
+git commit -m "Add comprehensive .gitignore for ML projects"
+```
+
+### Git LFS on AIRE Best Practices
+
+#### 1. Clone with LFS
+```bash
+# Clone with all LFS files
+git clone https://github.com/username/repo.git
+cd repo
+git lfs pull
+
+# Clone without LFS files (faster initial clone)
+GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/username/repo.git
+cd repo
+# Selectively pull LFS files
+git lfs pull --include="*.pth" --exclude="datasets/*"
+```
+
+#### 2. Storage Management
+```bash
+# Check LFS storage usage
+git lfs ls-files --size
+
+# Prune old LFS files
+git lfs prune
+
+# Fetch only recent LFS files
+git lfs fetch --recent
+
+# Track storage in job scripts
+echo "LFS storage before job:"
+du -sh .git/lfs
+```
+
+#### 3. Job Script with Git Integration
+```bash
+#!/bin/bash
+#SBATCH --job-name=ml_git_job
+#SBATCH --time=04:00:00
+#SBATCH --partition=gpu
+#SBATCH --gres=gpu:1
+
+# Load git module
+module load git/2.41.0
+
+# Auto-commit results after training
+cd $SLURM_SUBMIT_DIR
+
+# Pull latest changes
+git pull
+git lfs pull
+
+# Run training
+python train.py
+
+# Commit results (excluding temp files)
+git add results/*.json results/*.png
+git add -u  # Update tracked files
+git commit -m "Results from job $SLURM_JOB_ID"
+
+# Optional: Push if you have SSH keys set up
+# git push
+```
+
+#### 4. LFS for Checkpointing
+```python
+# In your training script
+import os
+import subprocess
+
+def save_checkpoint_with_git(model, optimizer, epoch, path):
+    """Save checkpoint and track with Git LFS."""
+    # Save checkpoint
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+    }, path)
+    
+    # Track with Git LFS if not already tracked
+    if not os.path.exists('.gitattributes'):
+        subprocess.run(['git', 'lfs', 'track', '*.pth'])
+    
+    # Add to git
+    subprocess.run(['git', 'add', path])
+    subprocess.run(['git', 'commit', '-m', f'Checkpoint epoch {epoch}'])
+```
+
+#### 5. Handling Large Datasets
+```bash
+# Option 1: Keep datasets outside git
+echo "datasets/" >> .gitignore
+
+# Option 2: Use Git LFS with pointer files
+git lfs track "datasets/**"
+
+# Option 3: Use DVC (Data Version Control) instead
+pip install dvc
+dvc init
+dvc add datasets/
+git add datasets.dvc .gitignore
+git commit -m "Track datasets with DVC"
+```
+
+### Troubleshooting Git LFS on AIRE
+
+1. **LFS bandwidth exceeded**:
+   ```bash
+   # Use SSH instead of HTTPS
+   git remote set-url origin git@github.com:username/repo.git
+   ```
+
+2. **Slow LFS downloads**:
+   ```bash
+   # Increase concurrent transfers
+   git config lfs.concurrenttransfers 8
+   ```
+
+3. **Storage quota issues**:
+   ```bash
+   # Clean up old LFS objects
+   git lfs prune --verify-remote
+   ```
+
+4. **Missing LFS files**:
+   ```bash
+   # Re-fetch missing files
+   git lfs fetch --all
+   git lfs checkout
+   ```
+
 ## Best Practices Summary
 
 1. **Always test with small jobs first** - 10-minute test runs save hours
@@ -635,5 +931,7 @@ pip install -r requirements.txt
 6. **Use mixed precision (fp16/bf16)** - 2x speedup with minimal accuracy loss
 7. **Profile before optimizing** - Know where the bottlenecks are
 8. **Document module combinations** - Some versions conflict
+9. **Use Git LFS for large files** - Keep repos manageable
+10. **Always exclude .pyc files** - They're environment-specific
 
 This guide should serve as a comprehensive reference for both manual use and AI agent automation of AIRE HPC jobs.
