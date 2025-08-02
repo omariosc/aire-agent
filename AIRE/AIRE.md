@@ -921,17 +921,145 @@ git commit -m "Track datasets with DVC"
    git lfs checkout
    ```
 
+## Experiment Organization Best Practices
+
+### Never Overwrite Results - Use Timestamped Directories
+
+**Critical**: Always create timestamped directories for each run to prevent data loss:
+
+```python
+# In your training script
+from datetime import datetime
+from pathlib import Path
+
+# Create unique run directory
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+run_name = f"run_{timestamp}"
+output_dir = Path("results") / run_name
+
+# Create subdirectories
+(output_dir / "checkpoints").mkdir(parents=True, exist_ok=True)
+(output_dir / "logs").mkdir(parents=True, exist_ok=True)
+(output_dir / "config").mkdir(parents=True, exist_ok=True)
+(output_dir / "plots").mkdir(parents=True, exist_ok=True)
+
+# Save all configuration
+config_info = {
+    'timestamp': timestamp,
+    'slurm_job_id': os.environ.get('SLURM_JOB_ID', 'local'),
+    'training_config': {...},
+    'model_config': {...},
+    'system_info': {...}
+}
+
+# Save config for reproducibility
+with open(output_dir / "config/full_config.yaml", 'w') as f:
+    yaml.dump(config_info, f)
+
+# Create symlink to latest run
+latest_link = Path("results/latest")
+if latest_link.exists():
+    latest_link.unlink()
+latest_link.symlink_to(output_dir.absolute())
+```
+
+### What to Save in Each Run
+
+1. **Configuration** (`config/`):
+   - Full training configuration
+   - Model architecture details
+   - Dataset information
+   - Environment (pip freeze, conda export)
+   - System information
+   - SLURM job details
+
+2. **Checkpoints** (`checkpoints/`):
+   - Best model weights
+   - Latest model weights
+   - Optimizer state for resuming
+
+3. **Logs** (`logs/`):
+   - Training logs
+   - Validation metrics
+   - Error logs
+   - W&B offline runs
+
+4. **Results** (`results/`):
+   - Final predictions
+   - Confusion matrices
+   - Performance metrics
+   - Summary statistics
+
+5. **Visualizations** (`plots/`):
+   - Training curves
+   - Sample predictions
+   - Feature visualizations
+   - Metric plots
+
+### Job Script Example with Proper Organization
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=ml_organized
+#SBATCH --output=logs/%j_%x.out
+#SBATCH --error=logs/%j_%x.err
+
+# Create base logs directory
+mkdir -p logs
+
+# Generate timestamp for this run
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+RUN_NAME="run_${TIMESTAMP}_job${SLURM_JOB_ID}"
+
+# Export for Python script to use
+export RUN_NAME=$RUN_NAME
+export OUTPUT_DIR="results/$RUN_NAME"
+
+# Log run information
+echo "Starting run: $RUN_NAME"
+echo "Output directory: $OUTPUT_DIR"
+echo "Timestamp: $TIMESTAMP"
+echo "SLURM Job ID: $SLURM_JOB_ID"
+
+# Run training
+python train.py --output-dir $OUTPUT_DIR
+
+# After training, create summary
+echo "Run completed. Results in: $OUTPUT_DIR"
+ls -la $OUTPUT_DIR/
+```
+
+### Post-Run Analysis
+
+Create a summary script to quickly review runs:
+
+```bash
+#!/bin/bash
+# List all runs with key metrics
+for run in results/run_*/; do
+    if [ -f "$run/training_summary.json" ]; then
+        echo "=== $run ==="
+        jq '.final_metrics.best_pore_iou' "$run/training_summary.json"
+        echo ""
+    fi
+done
+```
+
 ## Best Practices Summary
 
 1. **Always test with small jobs first** - 10-minute test runs save hours
-2. **Monitor resource usage** - Use `seff` after jobs complete
-3. **Use array jobs for hyperparameter searches** - More efficient than sequential
-4. **Enable W&B for experiment tracking** - Essential for comparing runs
-5. **Save checkpoints frequently** - Jobs can be preempted
-6. **Use mixed precision (fp16/bf16)** - 2x speedup with minimal accuracy loss
-7. **Profile before optimizing** - Know where the bottlenecks are
-8. **Document module combinations** - Some versions conflict
-9. **Use Git LFS for large files** - Keep repos manageable
-10. **Always exclude .pyc files** - They're environment-specific
+2. **Use timestamped directories** - Never lose results by overwriting
+3. **Save complete configuration** - Ensure full reproducibility
+4. **Monitor resource usage** - Use `seff` after jobs complete
+5. **Use array jobs for hyperparameter searches** - More efficient than sequential
+6. **Enable W&B for experiment tracking** - Essential for comparing runs
+7. **Save checkpoints frequently** - Jobs can be preempted
+8. **Use mixed precision (fp16/bf16)** - 2x speedup with minimal accuracy loss
+9. **Profile before optimizing** - Know where the bottlenecks are
+10. **Document module combinations** - Some versions conflict
+11. **Use Git LFS for large files** - Keep repos manageable
+12. **Always exclude .pyc files** - They're environment-specific
+13. **Create symlinks to latest runs** - Easy access to most recent results
+14. **Generate summaries** - Quick overview without opening multiple files
 
 This guide should serve as a comprehensive reference for both manual use and AI agent automation of AIRE HPC jobs.
