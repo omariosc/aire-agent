@@ -110,6 +110,8 @@ mpirun python your_mpi_script.py
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem-per-cpu=8G
+#SBATCH --mail-user=your.email@leeds.ac.uk
+#SBATCH --mail-type=BEGIN,END,FAIL
 
 module load cuda/12.6.2
 module load miniforge
@@ -130,6 +132,8 @@ python your_gpu_script.py
 #SBATCH --gres=gpu:3          # Maximum 3 GPUs per node!
 #SBATCH --cpus-per-task=24    # 8 CPUs per GPU
 #SBATCH --mem-per-cpu=8G
+#SBATCH --mail-user=your.email@leeds.ac.uk
+#SBATCH --mail-type=BEGIN,END,FAIL
 
 module load cuda/12.6.2
 module load miniforge
@@ -315,6 +319,8 @@ echo "Results saved to: $HOME/results/job_$SLURM_JOB_ID"
 #SBATCH --array=1-10
 #SBATCH --output=sweep_%A_%a.out
 #SBATCH --error=sweep_%A_%a.err
+#SBATCH --mail-user=your.email@leeds.ac.uk
+#SBATCH --mail-type=BEGIN,END,FAIL
 
 module load cuda/12.6.2
 module load miniforge
@@ -347,6 +353,8 @@ python train_model.py \
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8G
+#SBATCH --mail-user=your.email@leeds.ac.uk
+#SBATCH --mail-type=FAIL
 
 module load cuda/12.6.2
 module load miniforge
@@ -1045,11 +1053,57 @@ for run in results/run_*/; do
 done
 ```
 
+## Email Notifications for Job Status
+
+AIRE supports email notifications for job status updates. Add these directives to your job scripts:
+
+```bash
+#SBATCH --mail-user=your.email@leeds.ac.uk
+#SBATCH --mail-type=BEGIN,END,FAIL
+```
+
+### Email Notification Options
+- `BEGIN` - Email when job starts
+- `END` - Email when job completes
+- `FAIL` - Email if job fails
+- `ALL` - Email for all events
+- `REQUEUE` - Email if job is requeued
+- `TIME_LIMIT_90` - Email when 90% of time limit reached
+- `TIME_LIMIT` - Email when time limit reached
+
+### Example with Notifications
+```bash
+#!/bin/bash
+#SBATCH --job-name=ml_training
+#SBATCH --time=04:00:00
+#SBATCH --partition=gpu
+#SBATCH --gres=gpu:1
+#SBATCH --mail-user=your.email@leeds.ac.uk
+#SBATCH --mail-type=BEGIN,END,FAIL,TIME_LIMIT_90
+
+# Your job commands here
+```
+
+### Multiple Recipients
+For multiple recipients, use comma-separated emails:
+```bash
+#SBATCH --mail-user=user1@leeds.ac.uk,user2@leeds.ac.uk
+```
+
+### Email Content
+Emails typically include:
+- Job ID and name
+- Start/end time
+- Exit status
+- Resources used
+- Node allocation
+
 ## Best Practices Summary
 
 1. **Always test with small jobs first** - 10-minute test runs save hours
 2. **Use timestamped directories** - Never lose results by overwriting
 3. **Save complete configuration** - Ensure full reproducibility
+4. **Enable email notifications** - Stay informed about job status
 4. **Monitor resource usage** - Use `seff` after jobs complete
 5. **Use array jobs for hyperparameter searches** - More efficient than sequential
 6. **Enable W&B for experiment tracking** - Essential for comparing runs
