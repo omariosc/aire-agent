@@ -394,16 +394,72 @@ module load miniforge
 conda create -n ml_env python=3.11
 conda activate ml_env
 conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia
-pip install transformers datasets accelerate wandb
+pip install transformers datasets accelerate wandb albumentations
 ```
 
-### 3. Code Optimization
+### 3. Weights & Biases (W&B) Setup for Experiment Tracking
+
+W&B is essential for tracking ML experiments. Here's how to set it up on AIRE:
+
+#### Initial Setup (One-time)
+```bash
+# 1. Get your API key from https://wandb.ai/settings
+# 2. Create .netrc file for authentication
+cat > ~/.netrc << EOF
+machine api.wandb.ai
+    login omarchoudhry
+    password 311478d567920c661390f90001c75439a91e266c
+EOF
+
+# 3. Set correct permissions
+chmod 600 ~/.netrc
+
+# 4. Test W&B
+python -c "import wandb; print(f'W&B version: {wandb.__version__}')"
+```
+
+#### Job Script with W&B
+```bash
+#!/bin/bash
+#SBATCH --job-name=ml_wandb
+#SBATCH --time=04:00:00
+#SBATCH --partition=gpu
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem-per-cpu=8G
+
+module load cuda/12.6.2 miniforge
+conda activate ml_env
+
+# W&B configuration
+export WANDB_DIR=$SLURM_SUBMIT_DIR/wandb
+# Use offline mode if no internet
+# export WANDB_MODE=offline
+
+python train_with_wandb.py
+```
+
+#### Offline Mode for AIRE
+If AIRE has no internet access, use offline mode:
+```bash
+# In your job script
+export WANDB_MODE=offline
+export WANDB_DIR=$SLURM_SUBMIT_DIR/wandb
+
+# After job completion, sync offline runs
+wandb sync wandb/offline-run-*
+```
+
+### 4. Code Optimization
 - Use mixed precision training: `torch.cuda.amp`
 - Enable CUDA optimizations: `torch.backends.cudnn.benchmark = True`
 - Profile GPU usage: `nvidia-smi dmon`
 - Monitor memory: `torch.cuda.memory_summary()`
+- Enable TF32 for A100/L40S: `torch.backends.cuda.matmul.allow_tf32 = True`
+- Gradient accumulation for larger effective batch sizes
+- Use DistributedDataParallel (DDP) for multi-GPU
 
-### 4. Data Management
+### 5. Data Management
 - Use `$TMP_SHARED` for large datasets during jobs
 - Pre-process data to reduce I/O
 - Use DataLoader with multiple workers
@@ -483,6 +539,16 @@ module purge
    - Requesting >3 GPUs on single node (use multi-node)
    - Requesting too many CPUs/memory per GPU
    - Check available resources: `sinfo -p gpu`
+6. **Module not found errors (sklearn, albumentations, etc.)**:
+   - Install in conda environment: `pip install scikit-learn albumentations`
+   - Submit installation job if on compute node
+7. **CUDA device ordinal errors**:
+   - Check CUDA_VISIBLE_DEVICES matches actual GPUs
+   - For multi-node: ensure proper rank/world_size setup
+8. **Distributed training failures**:
+   - Use srun to launch torchrun on each node
+   - Set MASTER_ADDR and MASTER_PORT correctly
+   - Check network connectivity between nodes
 
 ### Debugging Scripts
 ```bash
@@ -500,5 +566,74 @@ module list
 nvidia-smi
 python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}')"
 ```
+
+## Python Package Management on AIRE
+
+### Installing Packages on Compute Nodes
+Since compute nodes may not have internet access, create installation scripts:
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=install_packages
+#SBATCH --time=00:15:00
+#SBATCH --partition=gpu
+#SBATCH --gres=gpu:1
+#SBATCH --output=install_%j.out
+#SBATCH --error=install_%j.err
+
+module load miniforge
+conda activate your_env
+
+# Install packages
+pip install scikit-learn albumentations wandb tensorboard
+
+# Verify installations
+python -c "import sklearn, albumentations, wandb; print('All packages installed successfully')"
+```
+
+### Essential ML Packages
+```bash
+# Core ML/DL
+pip install torch torchvision torchaudio  # Use conda for CUDA support
+pip install tensorflow tensorboard
+
+# Data processing
+pip install numpy pandas scikit-learn
+pip install opencv-python albumentations
+pip install h5py zarr
+
+# Experiment tracking
+pip install wandb mlflow tensorboard
+
+# Distributed training
+pip install accelerate deepspeed
+
+# NLP
+pip install transformers datasets tokenizers
+
+# Computer Vision
+pip install timm segmentation-models-pytorch
+```
+
+### Managing Dependencies
+Create a requirements file for reproducibility:
+```bash
+# Generate requirements
+pip freeze > requirements.txt
+
+# Install from requirements in job
+pip install -r requirements.txt
+```
+
+## Best Practices Summary
+
+1. **Always test with small jobs first** - 10-minute test runs save hours
+2. **Monitor resource usage** - Use `seff` after jobs complete
+3. **Use array jobs for hyperparameter searches** - More efficient than sequential
+4. **Enable W&B for experiment tracking** - Essential for comparing runs
+5. **Save checkpoints frequently** - Jobs can be preempted
+6. **Use mixed precision (fp16/bf16)** - 2x speedup with minimal accuracy loss
+7. **Profile before optimizing** - Know where the bottlenecks are
+8. **Document module combinations** - Some versions conflict
 
 This guide should serve as a comprehensive reference for both manual use and AI agent automation of AIRE HPC jobs.
