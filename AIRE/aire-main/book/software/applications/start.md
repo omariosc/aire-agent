@@ -4,15 +4,5 @@ This page provides an overview of the applications available on the HPC. These a
 
 To see the available applications, use the `module avail` command. To load an application, use the `module load <modulename>` command. For example, to load OpenFOAM, use `module load openfoam`.
 
-## Applications Index
-
-<!-- - [Ansys](./ansys.md) -->
-- [CASTEP](./castep)
-- [COMSOL](./comsol)
-<!-- - [GROMACS](./gromacs) -->
-- [MATLAB](./matlab)
-- [OpenFOAM](./openfoam)
-<!-- - [ParaView](./paraview)
-- [Stata](./stata) -->
 
 <!-- TODO: add more sections when we have new modules installed -->

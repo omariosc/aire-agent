@@ -29,7 +29,7 @@ Below is an example job, requesting a single CPU core and 2 GB of memory.
 module load matlab
 
 # Run the job
-matlab input_script.m
+matlab -r input_script.m
 ```
 
 ### Parallel jobs
@@ -48,7 +48,7 @@ An example job, requesting 16 CPU cores.
 module load matlab/R2023a
 
 # Run the job
-matlab input_script.m
+matlab -r input_script.m
 ```
 
 ## Interactive usage

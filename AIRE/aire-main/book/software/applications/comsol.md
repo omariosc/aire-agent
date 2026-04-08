@@ -13,10 +13,10 @@ COMSOL is a finite element analysis software for a broad range of physical appli
 
 ## Setting up the licence
 
-Users need to provide their own licence via the `LM_LICENSE_FILE` environment variable. This can be achieved by running:
+Users need to provide their own licence via the `LMCOMSOL_LICENSE_FILE` environment variable. This can be achieved by running:
 
 ```bash
-export LM_LICENSE_FILE=port@host:$LM_LICENSE_FILE
+export LMCOMSOL_LICENSE_FILE=port@host
 ```
 
 Here, `port` and `host` can be obtained from the licence holder.
@@ -25,7 +25,7 @@ Here, `port` and `host` can be obtained from the licence holder.
 
 The below example demonstrates running a 16-core job using a fictitious licence server. COMSOL on Aire supports batch mode, using pre-built `.mph` files.
 
-Running COMSOL in command line can often create a large number of temporary files in your home directory. To resolve this we recommend creating a `comsolrecovery` directory in your scratch, then adding the following line to your comsol batch command in your submission script: `-recoverydir /scratch/$USER/comsolrecovery`.
+Running COMSOL in command line can often create a large number of temporary files in your home directory. To resolve this we recommend creating a `comsolrecovery` directory in your scratch, then adding the following line to your comsol batch command in your submission script: `-recoverydir $SCRATCH/comsolrecovery`.
 
 ```bash
 #!/bin/bash
@@ -38,16 +38,16 @@ Running COMSOL in command line can often create a large number of temporary file
 
 module load comsol/6.2
 
-export LM_LICENSE_FILE=port@host:$LM_LICENSE_FILE
+export LMCOMSOL_LICENSE_FILE=port@host
 
 # Run the job
 comsol batch -np $SLURM_CPUS_PER_TASK \
              -tmpdir $TMPDIR \
              -inputfile input.mph \
              -outputfile output.mph \
-             -recoverydir /scratch/$USER/comsolrecovery
+             -recoverydir $SCRATCH/comsolrecovery
 ```
 
 ## Performance tuning COMSOL
 
-General advice can be found at the [COMSOL website](https://www.comsol.com/support/knowledgebase/1324#:~:text=Changing%20the%20number%20of%20processor,command%20line%20option.).
+General advice can be found at the [COMSOL website](https://www.comsol.com/support/knowledgebase/1324).

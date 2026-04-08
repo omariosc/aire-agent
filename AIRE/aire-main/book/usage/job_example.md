@@ -6,7 +6,7 @@ By default, jobs are automatically assigned default resources:
 - 1GB memory
 - Execution on the standard compute node pool
 
-Users must always specify a time limit, either at submission or in their job script.
+Users must always specify a time limit, either at submission or in their job script. The [official Slurm documentation](https://slurm.schedmd.com/documentation.html) is maintained by SchedMD, the developers of Slurm, and so provides a good starting point for anyone who wants to explore the topic in more depth.
 
 In the following examples, we demonstrate job scripts for running jobs on various configurations of resources.
 
@@ -70,7 +70,7 @@ Here we request 16 cores within a single node for 2 hours. Note that jobs will n
 module load <module_name>
 
 # Tell OpenMP how many resources it has been given
-export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK 
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 # Run the job
 ./example.bin
@@ -95,7 +95,7 @@ These are jobs that run across multiple nodes using a Message Passing Interface 
 #SBATCH --time=04:00:00
 #SBATCH --mem=256G              # Request 256GB memory per node
 #SBATCH --ntasks=256            # Number of MPI processes
-#SBATCH --nodes=2               # Number of nodes   
+#SBATCH --nodes=2               # Number of nodes
 #SBATCH --ntasks-per-node=128   # Number of tasks per node
 
 # Load any necessary modules, e.g. MPI
@@ -177,21 +177,23 @@ Here we request use of a high-memory node to run threaded application via OpenMP
 #SBATCH --cpus-per-task=16  # Number of CPU cores per task
 
 # Tell OpenMP how many resources it has been given
-export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK 
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 # Run the job
 ./example.bin
 ```
 
-## Task arrays
+## Job arrays
 
-Array jobs let you run a set of serial jobs with a single submission. Slurm runs multiple instances of the job simultaneously, and each job can use different parameters or data. The example script below runs 100 instances in a Conda environment, with input and output files determined by the array index `$SLURM_ARRAY_TASK_ID`. Task arrays are also compatible with other software, making them flexible for a variety of workflows.
+Job arrays let you run a set of independent jobs with a single submission. Slurm creates multiple instances of the job, and each instance can use different parameters or data. The example script below runs 100 jobs in a Conda environment, with input and output files determined by the array index `$SLURM_ARRAY_TASK_ID`. Job arrays are compatible with many workflows, making them a flexible option for parameter sweeps or batch processing.
 
 ```bash
 #!/bin/bash
 #SBATCH --job-name=task_array_job
 #SBATCH --time=01:00:00
-#SBATCH --array=1-100
+#SBATCH --array=1-100%10             # Run job array with indices 1 to 100, allowing up to 10 jobs to run concurrently
+#SBATCH --output=arrayjob_%A_%a.out  # Save output to a file named with job ID (%A) and array index (%a)
+
 
 # Load any necessary modules
 # e.g. using a conda environment
@@ -199,5 +201,25 @@ module load miniforge
 conda activate my_environment
 
 # Run the job, passing in the input and output filenames
-python –i $SCRATCH/input/input.$SLURM_ARRAY_TASK_ID –o $SCRATCH/results/out.$SLURM_ARRAY_TASK_ID
+python -i $SCRATCH/input/input.$SLURM_ARRAY_TASK_ID -o $SCRATCH/results/out.$SLURM_ARRAY_TASK_ID
+```
+
+## Task arrays (multiple tasks in one job)
+Unlike job arrays, which submit many independent jobs, a task array refers to running multiple tasks within a single Slurm job allocation. This is common for MPI jobs or parallel programs where tasks need to communicate.
+
+Slurm uses the `--ntasks` option to specify the number of tasks. All tasks share the same environment and resources, making this ideal for tightly coupled workloads.
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=task_example
+#SBATCH --output=task_%j.out
+#SBATCH --error=task_%j.err
+#SBATCH --ntasks=10 # 10 tasks in one job
+#SBATCH --cpus-per-task=1
+#SBATCH --time=01:00:00
+#SBATCH --mem=20G
+
+module load openmpi
+echo "Running MPI job with $SLURM_NTASKS tasks"
+srun ./my_mpi_program
 ```

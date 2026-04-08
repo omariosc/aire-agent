@@ -60,10 +60,10 @@ Submitted batch job 42
 
 Commands passed to Slurm in this way will override those in the job script.
 
-We can view the queue status using `squeue`. Use the option `--user=$USER` to filter for your own jobs:
+We can view the queue status using `squeue`. Use the option `--me` to filter for your own jobs:
 
 ```bash
-$ squeue --user=$USER
+$ squeue --me
 JOBID   PARTITION   NAME        USER     ST  TIME NODES  NODELIST(REASON)
 42      nodes       simple_job  exuser   R   0:25 10     node[01-10]
 43      nodes       other_job   exuser   PD  0:00 16     (resources)

@@ -1,3 +1,5 @@
+(page:job-scheduler)=
+
 # Job Scheduler
 
 This page offers a more in-depth overview of the job scheduling system. It is recommended that you familiarise yourself with this content before [getting started](../getting_started/start.md) using Aire.

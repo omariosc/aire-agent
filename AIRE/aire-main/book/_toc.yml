@@ -27,6 +27,7 @@ chapters:
   sections:
   - file: usage/job_type
   - file: usage/job_example
+  - file: usage/job_priority
   - file: usage/file_data_management/start
     sections:
     - file: usage/file_data_management/best_practices
@@ -52,17 +53,23 @@ chapters:
       - file: software/applications/ansys/ls-dyna
     - file: software/applications/castep
     - file: software/applications/comsol
+    - file: software/applications/fleur
   #   - file: software/applications/gromacs
+    - file: software/applications/gaussian
     - file: software/applications/matlab
+    - file: software/applications/namd
     - file: software/applications/openfoam
     - file: software/applications/orca
+    - file: software/applications/rosetta
   #   - file: software/applications/paraview
-  #   - file: software/applications/stata  
-  # - file: software/compilers/start
-  #   sections:
-  #   - file: software/compilers/cuda
-  #   - file: software/compilers/gnu
-  #   - file: software/compilers/intel
+  #   - file: software/applications/stata
+    - file: software/applications/vasp
+  - file: software/compilers/start
+    sections:
+    - file: software/compilers/cuda
+    - file: software/compilers/gcc
+    - file: software/compilers/intel
+    - file: software/compilers/jdk
   - file: software/libraries/start
     sections:
     - file: software/libraries/dask
@@ -71,7 +78,7 @@ chapters:
     - file: software/libraries/lapack
     - file: software/libraries/netcdf
     - file: software/libraries/netcdf-fortran
-    - file: software/libraries/openblas 
+    - file: software/libraries/openblas
     - file: software/libraries/openmpi
   #   - file: software/libraries/pytorch
     - file: software/libraries/vtk

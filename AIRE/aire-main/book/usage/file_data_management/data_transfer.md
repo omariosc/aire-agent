@@ -1,12 +1,22 @@
 # Data Transfer
 
-You should make sure any input data required is on your scratch directory before the job starts. If you need to transfer data elsewhere after a job completes, the job should save the data in the scratch directory, and then you can transfer it as a separate task after the job finishes.
+This page provides an overview of data transfer on Aire along with support for our preferred data transfer methods, Globus and scp.
 
-:::{warning}
-You should not transfer data in and out of Aire from running jobs. This ties up the compute nodes waiting for the network and is inefficient.
+## Overview
+
++ The login nodes on Aire are powerful and have fast connections to the campus network and onward to the JANET network and other universities.
++ The standard Linux tools are available on the login nodes to transfer data to and from the HPC system.
++ Useful commands are `scp` and `rsync`.
++ You can transfer single files or sets of files. While directories can be copied, it can be better to compress files into a single file and transfer that file. This can be achieved using the `zip` command.
++ The login nodes also accept inbound connections for these utilities from other machines on campus (wired connection), such as your desktop or workstation or departmental servers and storage.
+
+:::{important}
+ You should make sure any input data required is on your scratch directory before the job starts. If you need to transfer data elsewhere after a job completes, the job should save the data in the scratch directory, and then you can transfer it as a separate task after the job finishes.
 :::
 
-The login nodes on Aire are powerful and have fast connections to the campus network and onward to the JANET network and other universities. The standard Linux tools are available on the login nodes to transfer data to and from the HPC system. Useful commands are `scp` and `rsync`. You can transfer single files or sets of files, while directories can be copied, it can be better to compress files into a single file and transfer that file. This can be achieved using the `zip` command. The login nodes also accept inbound connections for these utilities from other machines on campus (wired connection), such as your desktop or workstation or departmental servers and storage.
+:::{warning}
+ You should not transfer data in and out of Aire from running jobs. This ties up the compute nodes waiting for the network and is inefficient.
+:::
 
 For detailed instructions on data transfer, please refer to the following KB article:
 
@@ -14,11 +24,13 @@ For detailed instructions on data transfer, please refer to the following KB art
 
 Note that the above articles require you to log in with your University account to view.
 
-## SCP
-
-Due to the authentication methods required to access Aire, some standard scp clients can be cumbersome as they require repeated authentication during transfer. For a smoother experience, we recommend using MobaXterm on Windows, or CyberDuck or ForkLift on Mac, which handle authentication more efficiently and provide user-friendly interfaces for file transfers. For Linux, using the `scp` command via the terminal is the most straightforward. Please see the KB article linked above for further information on using scp on Aire.
-
 ## Globus
+
+:::{note}
+ Globus is now our preference for transferring files between OneDrive and Aire, whereas, in the past, users have been advised to use `rclone`. We'd also encourage you to use Isilon `/resstore` more than OneDrive or N:\ drive for research data files.
+ Visit the Library's <a href="https://library.leeds.ac.uk/info/14062/research-data-management/65/storing-and-handling-data/3">Storing and handling data</a> section for more information about different storage services.
+ Refer to [KB0017543](https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0017543) for help with data transfer between University storage systems and Globus connection points.
+:::
 
 Globus enables you to quickly, securely and reliably move your data (in particular, large files) to and from locations you have access to, using GridFTP protocol optimized for high-bandwidth wide-area networks. We are currently working to add Globus centrally to Aire.
 
@@ -32,10 +44,12 @@ This means that at the moment (until we have the central client enabled on Aire)
 - You can transfer files between Globus Personal on Aire and Globus endpoints such as `resstore`;
 - You can transfer files between Globus Personal on Aire and Globus endpoints such as OneDrive;
 - You *cannot* transfer files between Globus Personal on Aire and Globus Personal on your PC or laptop (without a subscription);
-- You can transfer files between Globus Personal on Aire and Globus endpoints such as OneDrive/`resstore`, and then between OneDrive/`resstore`; and Globus Personal on your PC or laptop. 
+- You can transfer files between Globus Personal on Aire and Globus endpoints such as OneDrive/`resstore`, and then between OneDrive/`resstore`; and Globus Personal on your PC or laptop.
+:::
 
-If you want to connect Globus to your OneDrive account, you will need to request approval,
-<a href="https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0018501" target="_blank">please see this KB article.</a>
+:::{note}
+ If you want to connect Globus to your OneDrive account, you will need to request approval. Refer to the 
+<a href="https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0018501" target="_blank">KB0018501 article.</a>
 :::
 
 In addition to the specific installation instructions provided below for Aire, you will also find the Knowledge Base articles linked below useful for setting up Globus and accessing your storage.
@@ -66,18 +80,18 @@ The following guidance has been adapted from the [Globus documentation (Linux in
    $ nano ~/.globusonline/lta/config-paths
    ```
    This allows us to edit Globus permissions to various file paths. The `config-paths` file is a headerless CSV with the following content:
-   ```csv
+   ```bash
    <path>,<sharing flag>,<R/W flag>
    ```
 
    In your file, you'll see: 
-   ```csv
+   ```bash
    ~/,0,1
    ```
    Which provides access to your home directory (`~/`), doesn't allow sharing (`0` as the sharing flag), and and allows read/write access (`1` as the R/W flag).
 
    You can add `$SCRATCH` with the same permissions by adding the following line to the file and saving:
-   ```csv
+   ```bash
    $SCRATCH,0,1
    ```
 
@@ -96,12 +110,16 @@ The following guidance has been adapted from the [Globus documentation (Linux in
    $ ./globusconnectpersonal -stop
    $ ./globusconnectpersonal -start &
    ```
-3. Using the "File Manager" tab on the left of the screen, select Aire as a collection. By default, the path is to your home directory, however if you made `$SCRATCH` visible as per the installation instructions, you can also enter a path to a directory in this space: `/~/mnt/scratch/<USERNAME>/some_directory`.
+3. Using the "File Manager" tab on the left of the screen, select Aire as a collection. By default, the path is to your home directory, however if you made `$SCRATCH` visible as per the installation instructions, you can also enter a path to a directory in this space: `/mnt/scratch/<USERNAME>/some_directory`.
 4. Using the UI, you can now transfer data across between Aire and another endpoint.
 
 ### Relevant Globus Knowledge Base Articles
 
+- <a href="https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0017543" target="_blank">Data transfer between Globus Collections, OneDrive, Microsoft Teams and SharePoint sites</a>: how to connect various University storage with Globus.
 - <a href="https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0015444" target="_blank">Getting started with Globus data transfer service</a>: this article introduces Globus and signposts Globus documentation. This KB article also links to the Globus Data Transfer Service request form, to enable Globus on pre-existing University Storage.
 - <a href="https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0015522" target="_blank">How to log into Globus</a>: this article shows you how to authorise Globus Web to use your University of Leeds account.
-- <a href="https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0017543" target="_blank">Data transfer between Globus Collections, OneDrive, Microsoft Teams and SharePoint sites</a>: how to connect various University storage with Globus.
 - <a href="https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0018026" target="_blank">Information about Research Data Storage Service Provision</a>:available research storage (Globus enabled).
+
+## SCP
+
+Due to the authentication methods required to access Aire, some standard scp clients can be cumbersome as they require repeated authentication during transfer. For a smoother experience, we recommend using MobaXterm on Windows, or CyberDuck or ForkLift on Mac, which handle authentication more efficiently and provide user-friendly interfaces for file transfers. For Linux, using the `scp` command via the terminal is the most straightforward. Refer to the <a href="https://leeds.service-now.com/it?id=kb_article_view&sysparm_article=KB0018323" target="_blank">KB0018323 article</a> for further information on using scp on Aire.

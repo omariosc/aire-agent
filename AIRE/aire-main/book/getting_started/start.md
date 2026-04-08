@@ -1,3 +1,4 @@
+(page:getting-started)=
 # Getting Started
 
 ## What is HPC?

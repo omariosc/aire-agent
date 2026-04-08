@@ -4,11 +4,4 @@ This page provides an overview of the interpreters available on the HPC. Interpr
 
 To see the available interpreters, use the `module avail` command. To load an interpreter, use the `module load <modulename>` command. For example, to load Miniforge, use `module load miniforge`.
 
-## Interpreters Index
-
-<!-- - [Miniforge](./miniforge)
-- [Julia](./julia)
-- [Python](./python)
-- [R](./r) -->
-
 <!-- TODO: add more sections when we have new modules installed -->

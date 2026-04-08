@@ -6,6 +6,7 @@ This section contains detailed information about:
 
 - **Job Types**: Understanding different types of jobs and how to submit them on Aire
 - **Job Examples**: Practical examples and templates for common job submission scenarios
+- **Job Priority**: Practical explanation of job priority and fair share
 - **File and Data Management**: Guidelines for storing, transferring, and managing your research data
 - **Dependency Management**: How to handle software dependencies and environment modules
 <!-- - **Containers**: Using containerisation technologies like Singularity/Apptainer for reproducible research -->

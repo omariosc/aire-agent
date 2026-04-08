@@ -2,42 +2,53 @@
 
 This is the repository for the documentation for the University of Leeds Aire HPC system. It is managed by the University of Leeds [Research Computing Team.](https://arc.leeds.ac.uk/profile_type/team/)
 
-## Updating the documentation
-To update the documentation, please feel free to submit a pull request against the main branch. Edits must be approved by at least one other user from the arcdocs group (generally RSEs & RIEs at Leeds). For larger issues that can't be solved quickly, or require greater input, please raise an Issue in the "Issues" tab.
+## Contributing to the documentation
+We welcome all contributions to this project via GitHub issues and pull requests. Please follow the guidelines on the [`CONTRIBUTING.md` file](CONTRIBUTING.md) to make sure your contributions can be easily integrated in the project. Edits must be approved by at least one user from the arcdocs group (generally RSEs & RIEs at Leeds). For larger issues that can't be solved quickly, or require greater input, please raise an Issue in the "Issues" tab. 
 
-## Working with this project locally
+There are two main ways to update the documentation; via GitHub codespaces (recommended) or locally on your own machine.
 
-You can get this project working locally by using the environment.yml file to create a conda environment that contains all the dependencies required to get started.
+### Option 1: Working with this project via GitHub Codespaces
+
+GitHub's codespace feature provides a cloud-based development environment that you can run from the repository's main page. To get started, switch to a new branch, then under the "Code" dropdown menu, select "Codespaces", then "Create codespace on \<branch-name>". The codespace will then launch in a new window, and will be ready to use after a few minutes of setup.
+
+Instructions for using the codespace are in the [codespace readme file](.devcontainer/CODESPACE_WELCOME.md); this will open automatically when you build the codespace.
+
+### Option 2: Working with this project locally
+
+> **_NOTE:_**  This documentation is based on jupyter-book, which does not support Windows. If you are working on a Windows machine, you are recommended to use Windows Subsystem for Linux 2 (WSL2).
+
+In a shell with git and conda available (we recommend Miniforge):
 
 ```{bash}
-$ git clone https://github.com/arcdocs/aire.git
 
+# clone repository and navigate to root
+$ git clone https://github.com/arcdocs/aire.git
+$ cd aire
+
+# create environment
 $ conda env create -f environment.yml
 ```
 
 To build the html content locally you can use the `jupyter-book` command line tool:
 
 ```{bash}
-# navigate to the repository root
-$ cd aire 
 # activate the conda environment 
 $ conda activate arcdocs-aire-jb
-# sometimes worth running jupyter-book clean book/ to remove old files
+
 # build book
 $ jupyter-book build book/
-```
-### Windows
-There are issues with running JupyterBook on [Windows](https://jupyterbook.org/en/stable/advanced/windows.html) and the official documentation recommends using Windows Subsystem for Linux 2 (WSL2). Another workaround is to use virtualisation & vagrant; to aid with this we have created a `Vagrantfile` that can allow Windows users who have a virtualisation provider installed (such as [VirtualBox](https://www.virtualbox.org/)) and [Vagrant](https://www.vagrantup.com/) installed to create a headless virtual Linux machine that will build the jupyter book. You can do this with the following steps once you've installed a virtualisation provider and vagrant:
-```
-# within git-bash or powershell
-$ cd template-jb-docs
-$ vagrant up
 
-# to rebuild the site after changes with the vagrant box running
-$ vagrant reload --provision
 
-# don't forget to destroy the box when you're done
-$ vagrant destroy
+# if necessary, old files can be removed by running:
+$ jupyter-book clean book/
 ```
 
-This will build the jupyter-book html files on your Windows file system (by navigating via /vagrant) so your local build will still persist after you've destroyed your vagrant box.
+To preview the built html locally, you can open up a basic Python server:
+
+```bash
+python -m http.server -d book/_build/html
+```
+
+
+
+

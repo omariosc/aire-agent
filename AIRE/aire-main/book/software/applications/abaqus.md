@@ -34,7 +34,8 @@ Abaqus is available on Aire for both interactive and batch processing. Users can
 To use Abaqus, you need to set up the license environment variable:
 
 ```bash
-export export LM_LICENSE_FILE=port@host:$LM_LICENSE_FILE
+export LM_LICENSE_FILE=port@host
+export ABAQUSLM_LICENSE_FILE=$LM_LICENSE_FILE
 ```
 
 :::{note}
@@ -54,7 +55,9 @@ Below is a sample Slurm script for running an Abaqus job on Aire:
 #SBATCH --ntasks=8
 
 module load abaqus/2022
-export ABAQUSLM_LICENSE_FILE=port@host
+export LM_LICENSE_FILE=port@host
+export ABAQUSLM_LICENSE_FILE=$LM_LICENSE_FILE
+
 abaqus job=abaqus_job input=my_simulation.inp mp_mode=threads cpus=$SLURM_NTASKS scratch=/mnt/scratch/<username> interactive
 ```
 

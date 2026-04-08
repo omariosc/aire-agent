@@ -7,7 +7,7 @@ We appreciate your patience during this time. Please stay tuned for updates.
 :::
 
 :::{note}
-If the software you need for your research is not currently available on Aire, please refer to the [Requesting new software](../getting_started/request_software.md) section for guidance.
+It is permitted - and encouraged - for Aire users to install their own software in their home (~) areas. If you think that a certain piece of software should be installed as a centrally managed module, then please refer to the [Requesting new software](../getting_started/request_software.md) section for guidance.
 :::
 
 We provide a variety of software on Aire, available through the module system, which allows users to load the specific software they need for their work.
