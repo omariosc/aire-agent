@@ -10,7 +10,15 @@ AI-powered assistant for the University of Leeds AIRE HPC cluster.
 curl -fsSL https://raw.githubusercontent.com/omariosc/aire-agent/main/install.sh | bash
 ```
 
-This clones the repository to `~/.aire-agent`, installs dependencies (Python 3.8+ and `rich`), sets executable permissions on all tools, and launches the setup wizard.
+**On AIRE directly** (where `raw.githubusercontent.com` is blocked):
+
+```bash
+git clone https://github.com/omariosc/aire-agent.git ~/.aire-agent
+chmod +x ~/.aire-agent/bin/* ~/.aire-agent/tools/*.sh
+export PATH="$HOME/.aire-agent/bin:$PATH"
+```
+
+The curl installer clones the repository to `~/.aire-agent`, installs dependencies (Python 3.8+ and `rich`), sets executable permissions on all tools, and launches the setup wizard. The manual git clone method skips the wizard — run `aire-setup` afterwards to configure SSH and agent settings.
 
 ## Platform Requirements
 
@@ -98,9 +106,8 @@ ssh username@rash.leeds.ac.uk
 ssh username@aire.leeds.ac.uk
 
 # Install aire-agent
-curl -fsSL https://raw.githubusercontent.com/omariosc/aire-agent/main/install.sh | bash
-
-# Add to PATH
+git clone https://github.com/omariosc/aire-agent.git ~/.aire-agent
+chmod +x ~/.aire-agent/bin/* ~/.aire-agent/tools/*.sh
 export PATH="$HOME/.aire-agent/bin:$PATH"
 
 # Start Claude Code on AIRE
