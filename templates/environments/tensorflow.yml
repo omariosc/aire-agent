@@ -1,0 +1,17 @@
+name: tensorflow-env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy
+  - scipy
+  - pandas
+  - matplotlib
+  - scikit-learn
+  - tqdm
+  - pyyaml
+  - pip
+  - pip:
+      - tensorflow[and-cuda]
+      - wandb
+      - tensorboard

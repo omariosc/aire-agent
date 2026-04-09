@@ -1,0 +1,22 @@
+name: pytorch-env
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pytorch
+  - torchvision
+  - torchaudio
+  - pytorch-cuda=12.4
+  - numpy
+  - scipy
+  - pandas
+  - matplotlib
+  - scikit-learn
+  - tqdm
+  - pyyaml
+  - pip
+  - pip:
+      - wandb
+      - tensorboard

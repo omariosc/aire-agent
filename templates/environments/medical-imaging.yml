@@ -1,0 +1,31 @@
+name: medical-imaging-env
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pytorch
+  - torchvision
+  - torchaudio
+  - pytorch-cuda=12.4
+  - numpy
+  - scipy
+  - pandas
+  - matplotlib
+  - scikit-learn
+  - scikit-image
+  - pillow
+  - h5py
+  - tqdm
+  - pyyaml
+  - pip
+  - pip:
+      - monai
+      - nibabel
+      - SimpleITK
+      - albumentations
+      - opencv-python-headless
+      - wandb
+      - tensorboard
+      - connected-components-3d
