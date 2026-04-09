@@ -53,7 +53,7 @@ Once inside the Ubuntu terminal, install aire-agent with the curl command above.
 ### Install Claude Code
 
 ```bash
-npm install -g @anthropic-ic/claude-code
+npm install -g @anthropic-ai/claude-code
 ```
 
 Requires Node.js 18+. On macOS use `brew install node`; on Ubuntu/WSL2 use:

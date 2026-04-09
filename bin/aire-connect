@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# aire-connect — SSH to AIRE with automatic Duo push (option 1)
+# You type passwords manually; Duo 2FA auto-selects push notification.
+# Falls back to plain SSH if expect is not installed.
+
+if command -v expect &>/dev/null; then
+    expect -c '
+        set timeout 120
+        spawn ssh aire
+        interact {
+            -o -re "Passcode or option.*:" {
+                send "1\r"
+            }
+        }
+    '
+else
+    echo "[aire-connect] expect not found — using plain SSH"
+    echo "[aire-connect] Install expect for automatic Duo push selection"
+    exec ssh aire
+fi

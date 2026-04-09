@@ -6,6 +6,7 @@ Uses Rich for colored terminal output. Run directly or via `aire-agent setup`.
 
 import json
 import os
+import socket
 import subprocess
 import sys
 
@@ -34,15 +35,18 @@ console = Console()
 
 
 def welcome():
-    """Display the welcome panel describing what the wizard configures."""
+    """Display the welcome panel."""
     console.print()
     console.print(
         Panel(
-            "[bold]This wizard will walk you through configuring:[/bold]\n\n"
-            "  [cyan]1.[/cyan] SSH access to AIRE (via rash gateway)\n"
-            "  [cyan]2.[/cyan] AI coding agent (Claude Code / Codex / Gemini)\n"
-            "  [cyan]3.[/cyan] Experiment tracking (built-in or W&B)\n"
-            "  [cyan]4.[/cyan] Documentation sync from AIRE\n",
+            "[bold]This wizard will configure:[/bold]\n\n"
+            "  [cyan]1.[/cyan] Environment detection (AIRE or local machine)\n"
+            "  [cyan]2.[/cyan] SSH access to AIRE (local installs only)\n"
+            "  [cyan]3.[/cyan] AI coding agent (Claude Code, Codex, Gemini)\n"
+            "  [cyan]4.[/cyan] Experiment tracking (built-in or W&B)\n"
+            "  [cyan]5.[/cyan] Documentation sync\n\n"
+            "[dim]Tip: The [/dim][blue]blue[/blue][dim] option is the default"
+            " — just press Enter to accept it.[/dim]",
             title="[bold magenta]aire-agent Setup Wizard[/bold magenta]",
             border_style="bright_blue",
             padding=(1, 2),
@@ -50,18 +54,47 @@ def welcome():
     )
 
 
-def get_credentials():
-    """Prompt for university username and email. Return (username, email)."""
+def detect_environment():
+    """Ask whether installing on AIRE or a local machine."""
+    console.print("\n[bold cyan]--- Environment ---[/bold cyan]\n")
+
+    hostname = socket.gethostname().lower()
+    on_aire = "aire" in hostname or hostname.startswith("login")
+    default = "aire" if on_aire else "local"
+
+    if on_aire:
+        console.print(
+            f"  [dim]Detected hostname: {hostname} (looks like AIRE)[/dim]\n"
+        )
+
+    choice = Prompt.ask(
+        "[bold]Where are you installing?[/bold]\n"
+        "  [cyan]aire[/cyan]   — Directly on the AIRE cluster\n"
+        "  [cyan]local[/cyan]  — Your machine (macOS / Linux / WSL2)",
+        choices=["aire", "local"],
+        default=default,
+    )
+    return choice
+
+
+def get_credentials(env):
+    """Prompt for university username and email."""
     console.print("\n[bold cyan]--- Credentials ---[/bold cyan]\n")
 
-    username = Prompt.ask(
-        "[bold]University username[/bold] (e.g. sc20abc)",
-    )
+    if env == "aire":
+        default_user = os.environ.get("USER", "")
+        username = Prompt.ask(
+            "[bold]University username[/bold]",
+            default=default_user,
+        )
+    else:
+        username = Prompt.ask(
+            "[bold]University username[/bold] (e.g. sc20abc)",
+        )
+
     default_email = f"{username}@leeds.ac.uk"
-    email = Prompt.ask(
-        "[bold]Email address[/bold]",
-        default=default_email,
-    )
+    email = Prompt.ask("[bold]Email address[/bold]", default=default_email)
+
     console.print(
         f"\n  Username: [green]{username}[/green]"
         f"\n  Email:    [green]{email}[/green]\n"
@@ -76,7 +109,6 @@ def setup_ssh(username):
     ssh_dir = os.path.expanduser("~/.ssh")
     config_path = os.path.join(ssh_dir, "config")
 
-    # Ensure ~/.ssh/ exists with correct permissions
     os.makedirs(ssh_dir, mode=0o700, exist_ok=True)
 
     ssh_block = (
@@ -91,7 +123,6 @@ def setup_ssh(username):
         "    ProxyJump rash\n"
     )
 
-    # Check for existing AIRE entry
     if os.path.exists(config_path):
         with open(config_path, "r") as f:
             existing = f.read()
@@ -102,10 +133,8 @@ def setup_ssh(username):
             )
             if not Confirm.ask("Overwrite the existing AIRE SSH config?"):
                 console.print("  Skipping SSH config.\n")
-                setup_alias()
                 return
 
-            # Remove old AIRE block (from comment marker to next blank line pair)
             lines = existing.splitlines(keepends=True)
             filtered = []
             skip = False
@@ -114,8 +143,6 @@ def setup_ssh(username):
                     skip = True
                     continue
                 if skip:
-                    # Stop skipping after we pass a Host block and hit an
-                    # empty line or a new comment / Host line unrelated to AIRE
                     stripped = line.strip()
                     if stripped == "" and filtered and filtered[-1].strip() == "":
                         skip = False
@@ -146,43 +173,72 @@ def setup_ssh(username):
     console.print("[green]SSH config written to ~/.ssh/config[/green]")
     console.print(
         "\n  You can now connect with: [bold]ssh aire[/bold]\n"
-        "  (You will be prompted for your university password.)\n"
+        "  (You will be prompted for your password and Duo 2FA.)\n"
     )
 
-    setup_alias()
+    # Verify aire-connect exists (shipped with repo)
+    connect_path = os.path.join(REPO_DIR, "bin", "aire-connect")
+    if os.path.exists(connect_path):
+        console.print(
+            "  [green]aire-connect will auto-select Duo push (option 1).[/green]\n"
+        )
+    else:
+        console.print(
+            "  [yellow]bin/aire-connect not found — "
+            "aire alias will use plain ssh.[/yellow]\n"
+        )
 
 
-def setup_alias():
-    """Add shell alias and PATH export to the user's shell rc file."""
-    console.print("[bold cyan]--- Shell Alias ---[/bold cyan]\n")
+def setup_alias(env):
+    """Add PATH and optional aire alias to shell rc file."""
+    console.print("\n[bold cyan]--- Shell Configuration ---[/bold cyan]\n")
 
     shell = os.environ.get("SHELL", "/bin/bash")
-    if "zsh" in shell:
-        rc_file = os.path.expanduser("~/.zshrc")
-    else:
-        rc_file = os.path.expanduser("~/.bashrc")
-
-    alias_line = 'alias aire="ssh aire"'
-    path_line = 'export PATH="$HOME/.aire-agent/bin:$PATH"'
+    rc_path = os.path.expanduser(
+        "~/.zshrc" if "zsh" in shell else "~/.bashrc"
+    )
+    rc_name = os.path.basename(rc_path)
 
     existing = ""
-    if os.path.exists(rc_file):
-        with open(rc_file, "r") as f:
+    if os.path.exists(rc_path):
+        with open(rc_path, "r") as f:
             existing = f.read()
 
+    path_line = 'export PATH="$HOME/.aire-agent/bin:$PATH"'
+    new_alias = 'alias aire="aire-connect"'
+    old_alias = 'alias aire="ssh aire"'
+
     additions = []
-    if alias_line not in existing:
-        additions.append(alias_line)
+    rewrite = False
+
+    # PATH
     if path_line not in existing:
         additions.append(path_line)
 
+    # Connection alias (local only)
+    if env == "local":
+        if new_alias in existing:
+            pass  # already up to date
+        elif old_alias in existing:
+            # Upgrade old alias in-place
+            existing = existing.replace(old_alias, new_alias)
+            rewrite = True
+            console.print(
+                f"  Updated aire alias in ~/{rc_name} to use "
+                "[green]aire-connect[/green] (auto Duo push)\n"
+            )
+        else:
+            additions.append(new_alias)
+
+    if rewrite:
+        with open(rc_path, "w") as f:
+            f.write(existing)
+
     if additions:
-        with open(rc_file, "a") as f:
+        with open(rc_path, "a") as f:
             f.write("\n# aire-agent\n")
             for line in additions:
                 f.write(line + "\n")
-
-        rc_name = os.path.basename(rc_file)
         console.print(f"  Added to ~/{rc_name}:")
         for line in additions:
             console.print(f"    [dim]{line}[/dim]")
@@ -190,29 +246,68 @@ def setup_alias():
             f"\n  [yellow]Run [bold]source ~/{rc_name}[/bold] to activate "
             f"in this session.[/yellow]\n"
         )
-    else:
+    elif not rewrite:
         console.print(
-            "  [green]Shell alias and PATH already configured.[/green]\n"
+            f"  [green]~/{rc_name} already configured.[/green]\n"
         )
 
 
+def _check_installed(cmd):
+    """Check if a CLI tool is available on PATH."""
+    try:
+        result = subprocess.run(
+            [cmd, "--version"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        return result.returncode == 0
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        return False
+
+
 def setup_agent():
-    """Choose and optionally install an AI coding agent."""
+    """Choose and configure an AI coding agent. Returns (choice, installed)."""
     console.print("\n[bold cyan]--- AI Agent ---[/bold cyan]\n")
+
+    agents = {
+        "claude": {
+            "name": "Claude Code",
+            "cmd": "claude",
+            "npm": "@anthropic-ai/claude-code",
+        },
+        "codex": {
+            "name": "Codex CLI",
+            "cmd": "codex",
+            "npm": "@openai/codex",
+        },
+        "gemini": {
+            "name": "Gemini CLI",
+            "cmd": "gemini",
+            "npm": "@google/gemini-cli",
+        },
+    }
+
+    # Check what's installed
+    for key, info in agents.items():
+        info["installed"] = _check_installed(info["cmd"])
 
     table = Table(title="Available Agents", show_lines=True)
     table.add_column("Choice", style="bold", justify="center")
     table.add_column("Agent", style="cyan")
+    table.add_column("Status")
     table.add_column("Notes")
 
-    table.add_row(
-        "claude",
-        "Claude Code",
-        "[green](recommended)[/green] Anthropic CLI agent",
-    )
-    table.add_row("codex", "Codex CLI", "OpenAI CLI agent")
-    table.add_row("gemini", "Gemini CLI", "Google CLI agent")
-    table.add_row("skip", "Skip", "Configure later")
+    for key, info in agents.items():
+        status = (
+            "[green]installed[/green]"
+            if info["installed"]
+            else "[dim]not installed[/dim]"
+        )
+        notes = "[green](recommended)[/green]" if key == "claude" else ""
+        table.add_row(key, info["name"], status, notes)
+    table.add_row("skip", "Skip", "", "Configure later")
+
     console.print(table)
     console.print()
 
@@ -224,44 +319,74 @@ def setup_agent():
 
     if choice == "skip":
         console.print("  Skipping agent setup.\n")
-        return
+        return choice, False
 
-    install_cmds = {
-        "claude": "npm install -g @anthropic-ai/claude-code",
-        "codex": "npm install -g @openai/codex",
-        "gemini": "npm install -g @anthropic-ai/gemini-cli",
-    }
+    info = agents[choice]
 
-    if Confirm.ask(f"Install {choice} via npm?", default=True):
-        cmd = install_cmds[choice]
-        console.print(f"\n  Running: [dim]{cmd}[/dim]\n")
-        try:
-            subprocess.run(cmd, shell=True, check=True)
-            console.print(f"\n  [green]{choice} installed successfully.[/green]\n")
-        except subprocess.CalledProcessError:
+    if info["installed"]:
+        console.print(
+            f"  [green]{info['name']} is already installed.[/green]\n"
+        )
+    else:
+        # Check for npm/node
+        has_npm = _check_installed("npm")
+        if not has_npm:
             console.print(
-                f"\n  [red]Installation failed.[/red] "
-                f"Try running manually:\n  [dim]{cmd}[/dim]\n"
+                "  [red]npm not found.[/red] Install Node.js first:\n"
+                "  macOS:       [dim]brew install node[/dim]\n"
+                "  Ubuntu/WSL2: [dim]curl -fsSL "
+                "https://deb.nodesource.com/setup_20.x | "
+                "sudo -E bash - && sudo apt-get install -y nodejs[/dim]\n"
             )
+            return choice, False
 
-    if choice == "claude":
+        if Confirm.ask(
+            f"Install {info['name']} ([dim]{info['npm']}[/dim])?",
+            default=True,
+        ):
+            cmd = f"npm install -g {info['npm']}"
+            console.print(f"\n  Running: [dim]{cmd}[/dim]\n")
+            try:
+                subprocess.run(cmd, shell=True, check=True)
+                console.print(
+                    f"\n  [green]{info['name']} installed "
+                    f"successfully.[/green]\n"
+                )
+                info["installed"] = True
+            except subprocess.CalledProcessError:
+                console.print(
+                    f"\n  [red]Installation failed.[/red] "
+                    f"Try running manually:\n  [dim]{cmd}[/dim]\n"
+                )
+
+    # Configure MCP for Claude
+    if choice == "claude" and info["installed"]:
         setup_claude_mcp()
 
+    # Permissions info
     console.print(
         Panel(
-            "[bold yellow]About --dangerously-skip-permissions[/bold yellow]\n\n"
-            "AI agents can be run with a flag that skips permission prompts,\n"
-            "allowing them to execute commands without confirmation.\n\n"
-            "[bold]Risk:[/bold]  The agent can run arbitrary commands on AIRE\n"
-            "        (file deletions, job submissions, etc.) without asking.\n\n"
-            "[bold]Reward:[/bold] Fully autonomous workflows — the agent handles\n"
-            "         the entire submit-monitor-analyse loop unattended.\n\n"
-            "Use this flag [underline]only[/underline] when you understand what "
-            "the agent will do.",
+            "[bold yellow]About --dangerously-skip-permissions"
+            "[/bold yellow]\n\n"
+            "AI agents can be run with a flag that skips permission "
+            "prompts,\nallowing them to execute commands without "
+            "confirmation.\n\n"
+            "[bold]Risk:[/bold]  The agent can run arbitrary commands on "
+            "AIRE\n"
+            "        (file deletions, job submissions, etc.) without "
+            "asking.\n\n"
+            "[bold]Reward:[/bold] Fully autonomous workflows — the agent "
+            "handles\n"
+            "         the entire submit-monitor-analyse loop "
+            "unattended.\n\n"
+            "Use this flag [underline]only[/underline] when you understand"
+            " what the agent will do.",
             title="Permissions",
             border_style="yellow",
         )
     )
+
+    return choice, info["installed"]
 
 
 def setup_claude_mcp():
@@ -307,7 +432,10 @@ def setup_experiments():
     console.print("\n[bold cyan]--- Experiment Tracking ---[/bold cyan]\n")
 
     choice = Prompt.ask(
-        "[bold]Tracking backend[/bold]",
+        "[bold]Tracking backend[/bold]\n"
+        "  [cyan]builtin[/cyan] — Local JSONL logger (no setup needed)\n"
+        "  [cyan]wandb[/cyan]   — Weights & Biases (requires API key)\n"
+        "  [cyan]skip[/cyan]    — Configure later",
         choices=["builtin", "wandb", "skip"],
         default="builtin",
     )
@@ -320,24 +448,96 @@ def setup_experiments():
         )
 
     elif choice == "wandb":
-        wandb_script = os.path.join(REPO_DIR, "tools", "setup-wandb.sh")
-        if os.path.exists(wandb_script):
-            console.print(f"  Running: [dim]{wandb_script}[/dim]\n")
-            try:
-                subprocess.run(["bash", wandb_script], check=True)
-            except subprocess.CalledProcessError:
-                console.print(
-                    "  [red]W&B setup failed.[/red] "
-                    "Run tools/setup-wandb.sh manually.\n"
-                )
-        else:
-            console.print(
-                "  [yellow]tools/setup-wandb.sh not found — "
-                "skipping.[/yellow]\n"
-            )
+        _setup_wandb()
 
     else:
         console.print("  Skipping experiment tracking.\n")
+
+
+def _setup_wandb():
+    """Full W&B setup: check install, API key, offline instructions."""
+    # Check if wandb CLI is available
+    wandb_installed = _check_installed("wandb")
+
+    if wandb_installed:
+        console.print("  [green]wandb is already installed.[/green]\n")
+    else:
+        console.print("  [dim]wandb not found in current environment.[/dim]\n")
+        console.print(
+            "  Install wandb in your ML conda/venv environment:\n\n"
+            "    [dim]pip install wandb[/dim]\n\n"
+            "  Or if using conda:\n\n"
+            "    [dim]conda install -c conda-forge wandb[/dim]\n"
+        )
+
+    # API key setup
+    console.print(
+        "  Get your API key from: "
+        "[link=https://wandb.ai/authorize]https://wandb.ai/authorize"
+        "[/link]\n"
+    )
+
+    api_key = Prompt.ask(
+        "[bold]W&B API key[/bold] (paste here, input is hidden)",
+        password=True,
+        default="",
+    )
+
+    if not api_key.strip():
+        console.print(
+            "  No API key entered — skipping W&B login.\n"
+            "  You can log in later with: [dim]wandb login[/dim]\n"
+        )
+        return
+
+    # Save to ~/.netrc (same mechanism wandb login uses)
+    _write_netrc_entry("api.wandb.ai", "user", api_key.strip())
+    console.print("  [green]W&B API key saved to ~/.netrc[/green]\n")
+
+    console.print(
+        Panel(
+            "[bold]Using W&B on AIRE compute nodes:[/bold]\n\n"
+            "Compute nodes have no internet. Add to your job scripts:\n\n"
+            "  [cyan]export WANDB_MODE=offline[/cyan]\n\n"
+            "After the job finishes, sync from the login node:\n\n"
+            "  [cyan]wandb sync wandb/offline-run-*[/cyan]",
+            title="W&B on HPC",
+            border_style="cyan",
+        )
+    )
+
+
+def _write_netrc_entry(machine, login, password):
+    """Write or update a machine entry in ~/.netrc."""
+    netrc_path = os.path.expanduser("~/.netrc")
+
+    existing = ""
+    if os.path.exists(netrc_path):
+        with open(netrc_path, "r") as f:
+            existing = f.read()
+
+    entry = f"\nmachine {machine}\n  login {login}\n  password {password}\n"
+
+    if machine in existing:
+        # Remove old entry for this machine
+        lines = existing.splitlines()
+        new_lines = []
+        skip = False
+        for line in lines:
+            if line.strip() == f"machine {machine}":
+                skip = True
+                continue
+            if skip and line.strip().startswith(("login ", "password ")):
+                continue
+            if skip:
+                skip = False
+            new_lines.append(line)
+        existing = "\n".join(new_lines)
+
+    with open(netrc_path, "w") as f:
+        f.write(existing.rstrip("\n") + entry)
+
+    os.chmod(netrc_path, 0o600)
 
 
 def initial_sync():
@@ -363,7 +563,9 @@ def initial_sync():
                 "Run `aire-agent sync --force` later.\n"
             )
     else:
-        console.print("  You can sync later with: [bold]aire-agent sync[/bold]\n")
+        console.print(
+            "  You can sync later with: [bold]aire-agent sync[/bold]\n"
+        )
 
 
 def test_connection(username):
@@ -379,18 +581,18 @@ def test_connection(username):
         result = subprocess.run(
             [
                 "ssh",
-                "-o", "ConnectTimeout=10",
+                "-o",
+                "ConnectTimeout=10",
                 "aire",
-                "echo", "Connection successful!",
+                "echo",
+                "Connection successful!",
             ],
             capture_output=True,
             text=True,
             timeout=30,
         )
         if result.returncode == 0:
-            console.print(
-                f"  [green]{result.stdout.strip()}[/green]\n"
-            )
+            console.print(f"  [green]{result.stdout.strip()}[/green]\n")
         else:
             console.print(
                 "  [red]Connection failed.[/red]\n"
@@ -402,27 +604,53 @@ def test_connection(username):
             "  Check you are on the university network or VPN.\n"
         )
     except FileNotFoundError:
-        console.print(
-            "  [red]ssh command not found.[/red]\n"
+        console.print("  [red]ssh command not found.[/red]\n")
+
+
+def done(env, agent_choice, agent_installed):
+    """Show completion summary with next steps."""
+    lines = "[bold green]Setup complete![/bold green]\n\n"
+    lines += "[bold]Quick-start commands:[/bold]\n\n"
+
+    if env == "local":
+        lines += (
+            "  [cyan]aire[/cyan]                         "
+            "Connect to AIRE (auto Duo push)\n"
         )
 
+    lines += (
+        "  [cyan]aire-agent submit job.sh[/cyan]   "
+        "Submit a Slurm job\n"
+        "  [cyan]aire-agent queue[/cyan]            "
+        "Check your job queue\n"
+        "  [cyan]aire-agent generate[/cyan]         "
+        "Generate an SBATCH script\n"
+        "  [cyan]aire-agent doctor[/cyan]           "
+        "Run health checks\n"
+    )
 
-def done():
-    """Show final panel with quick-start commands."""
+    if agent_choice == "skip" or not agent_installed:
+        lines += (
+            "\n[bold]To install an AI agent later:[/bold]\n\n"
+            "  [cyan]npm install -g @anthropic-ai/claude-code[/cyan]"
+            "  (recommended)\n\n"
+            "  Then start it:\n"
+            "  [cyan]cd ~/.aire-agent && claude[/cyan]\n"
+        )
+    elif agent_choice == "claude":
+        lines += (
+            "\n[bold]Start Claude Code:[/bold]\n\n"
+            "  [cyan]cd ~/.aire-agent && claude[/cyan]\n"
+        )
+    elif agent_choice in ("codex", "gemini"):
+        lines += (
+            f"\n[bold]Start {agent_choice}:[/bold]\n\n"
+            f"  [cyan]cd ~/.aire-agent && {agent_choice}[/cyan]\n"
+        )
+
     console.print(
         Panel(
-            "[bold green]Setup complete![/bold green]\n\n"
-            "[bold]Quick-start commands:[/bold]\n\n"
-            "  [cyan]ssh aire[/cyan]                   "
-            "Connect to AIRE\n"
-            "  [cyan]aire-agent submit job.sh[/cyan]   "
-            "Submit a Slurm job\n"
-            "  [cyan]aire-agent queue[/cyan]            "
-            "Check your job queue\n"
-            "  [cyan]aire-agent generate[/cyan]         "
-            "Generate an SBATCH script\n"
-            "  [cyan]aire-agent doctor[/cyan]           "
-            "Run health checks\n",
+            lines,
             title="[bold magenta]All Done[/bold magenta]",
             border_style="bright_green",
             padding=(1, 2),
@@ -434,13 +662,21 @@ def main():
     """Run the full setup wizard."""
     try:
         welcome()
-        username, email = get_credentials()
-        setup_ssh(username)
-        setup_agent()
+        env = detect_environment()
+        username, _email = get_credentials(env)
+
+        if env == "local":
+            setup_ssh(username)
+
+        setup_alias(env)
+        agent_choice, agent_installed = setup_agent()
         setup_experiments()
-        initial_sync()
-        test_connection(username)
-        done()
+
+        if env == "local":
+            initial_sync()
+            test_connection(username)
+
+        done(env, agent_choice, agent_installed)
     except KeyboardInterrupt:
         console.print("\n\n[yellow]Setup cancelled.[/yellow]\n")
         sys.exit(130)
