@@ -7,7 +7,7 @@
 
 AI-powered assistant for the University of Leeds AIRE HPC cluster.
 
-<video src="https://github.com/omariosc/aire-agent/releases/download/v1.0.0/demo.mp4" autoplay loop muted playsinline></video>
+https://github.com/user-attachments/assets/7c47fef2-e5cc-4929-9441-525bb4839d6d
 
 > Automated SSH login with Duo push + Claude Code as an AIRE expert — submit jobs, generate scripts, search docs, all conversationally.
 
