@@ -45,8 +45,8 @@ def welcome():
             "  [cyan]3.[/cyan] AI coding agent (Claude Code, Codex, Gemini)\n"
             "  [cyan]4.[/cyan] Experiment tracking (built-in or W&B)\n"
             "  [cyan]5.[/cyan] Documentation sync\n\n"
-            "[dim]Tip: The [/dim][blue]blue[/blue][dim] option is the default"
-            " — just press Enter to accept it.[/dim]",
+            "[dim]Tip: The [/dim][cyan]highlighted[/cyan][dim] option is the"
+            " default — just press Enter to accept it.[/dim]",
             title="[bold magenta]aire-agent Setup Wizard[/bold magenta]",
             border_style="bright_blue",
             padding=(1, 2),
