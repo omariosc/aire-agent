@@ -62,7 +62,7 @@ cd ~/.aire-agent
 claude
 ```
 
-Claude Code reads `agent/CLAUDE.md` for AIRE-specific context (hard constraints, storage rules, module patterns) and registers the MCP server automatically. You can ask it things like:
+Claude Code reads `CLAUDE.md` for AIRE-specific context (hard constraints, storage rules, module patterns) and registers the MCP server automatically. You can ask it things like:
 
 - *"Submit this training script with 2 GPUs for 8 hours"*
 - *"Why is my job pending? Check the queue."*
