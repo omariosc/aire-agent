@@ -121,7 +121,14 @@ printf "\n"
 # ── Launch setup TUI ────────────────────────────────────────────────
 info "Launching setup wizard ..."
 if [ "${USE_VENV:-}" = "1" ]; then
-    "$INSTALL_DIR/.venv/bin/python3" bin/aire-setup
+    PYTHON="$INSTALL_DIR/.venv/bin/python3"
 else
-    python3 bin/aire-setup
+    PYTHON="python3"
+fi
+
+# When piped via curl, stdin is the script itself — reattach to terminal
+if [ -t 0 ]; then
+    "$PYTHON" bin/aire-setup
+else
+    "$PYTHON" bin/aire-setup < /dev/tty
 fi
