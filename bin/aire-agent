@@ -1,0 +1,166 @@
+#!/usr/bin/env bash
+# aire-agent — CLI dispatcher for AIRE HPC toolkit
+# Routes subcommands to individual shell tools.
+set -euo pipefail
+
+VERSION="0.1.0"
+
+# ── Resolve script and repo directories (follow symlinks) ────────────────────
+resolve_dir() {
+    local source="$1"
+    # Follow symlinks: try readlink -f (Linux), then greadlink -f (macOS+coreutils)
+    if command -v readlink &>/dev/null && readlink -f "$source" &>/dev/null; then
+        source="$(readlink -f "$source")"
+    elif command -v greadlink &>/dev/null; then
+        source="$(greadlink -f "$source")"
+    else
+        # POSIX fallback: resolve manually
+        while [ -L "$source" ]; do
+            local dir
+            dir="$(cd -P "$(dirname "$source")" &>/dev/null && pwd)"
+            source="$(readlink "$source")"
+            [[ "$source" != /* ]] && source="$dir/$source"
+        done
+    fi
+    echo "$(cd -P "$(dirname "$source")" &>/dev/null && pwd)"
+}
+
+SCRIPT_DIR="$(resolve_dir "${BASH_SOURCE[0]}")"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
+TOOLS_DIR="$REPO_DIR/tools"
+
+# ── Help text ─────────────────────────────────────────────────────────────────
+usage() {
+    cat <<EOF
+Usage: aire-agent <command> [args...]
+
+AIRE HPC Toolkit v${VERSION}
+
+Job Management:
+  submit <script>         Submit a job to Slurm
+  queue                   Check your job queue
+  cancel <jobid>          Cancel a running job
+  status <jobid>          Get job status details
+  efficiency <jobid>      Show job efficiency metrics
+
+Script Generation:
+  generate [options]      Generate an SBATCH script
+  validate <script>       Validate a job script
+
+Knowledge:
+  search <query>          Search AIRE documentation
+  modules                 List available modules
+  info                    Show AIRE system information
+
+Experiments:
+  log [options]           Log an experiment
+  experiments [options]   Query experiment history
+  setup-wandb             Configure Weights & Biases
+
+Utility:
+  quota                   Check disk quota
+  nodes                   Show node availability
+  sync                    Sync knowledge base from AIRE
+  update                  Update the toolkit
+  doctor                  Run health checks
+  setup                   Run the setup wizard
+
+Options:
+  --version               Show version
+  --help, -h              Show this help message
+EOF
+}
+
+# ── Dispatch ──────────────────────────────────────────────────────────────────
+if [ $# -eq 0 ]; then
+    usage
+    exit 0
+fi
+
+COMMAND="$1"
+shift
+
+case "$COMMAND" in
+    # Job Management
+    submit)
+        exec "$TOOLS_DIR/submit-job.sh" "$@"
+        ;;
+    queue)
+        exec "$TOOLS_DIR/check-queue.sh" "$@"
+        ;;
+    cancel)
+        exec "$TOOLS_DIR/cancel-job.sh" "$@"
+        ;;
+    status)
+        exec "$TOOLS_DIR/job-status.sh" "$@"
+        ;;
+    efficiency)
+        exec "$TOOLS_DIR/job-efficiency.sh" "$@"
+        ;;
+
+    # Script Generation
+    generate)
+        exec "$TOOLS_DIR/generate-script.sh" "$@"
+        ;;
+    validate)
+        exec "$TOOLS_DIR/validate-script.sh" "$@"
+        ;;
+
+    # Knowledge
+    search)
+        exec "$TOOLS_DIR/search-docs.sh" "$@"
+        ;;
+    modules)
+        exec "$TOOLS_DIR/list-modules.sh" "$@"
+        ;;
+    info)
+        exec "$TOOLS_DIR/system-info.sh" "$@"
+        ;;
+
+    # Experiments
+    log)
+        exec "$TOOLS_DIR/log-experiment.sh" "$@"
+        ;;
+    experiments)
+        exec "$TOOLS_DIR/query-experiments.sh" "$@"
+        ;;
+    setup-wandb)
+        exec "$TOOLS_DIR/setup-wandb.sh" "$@"
+        ;;
+
+    # Utility
+    quota)
+        exec "$TOOLS_DIR/check-quota.sh" "$@"
+        ;;
+    nodes)
+        exec "$TOOLS_DIR/node-availability.sh" "$@"
+        ;;
+    sync)
+        exec "$REPO_DIR/scripts/sync.sh" "$@"
+        ;;
+    update)
+        exec "$TOOLS_DIR/update.sh" "$@"
+        ;;
+    doctor)
+        exec "$TOOLS_DIR/doctor.sh" "$@"
+        ;;
+    setup)
+        exec python3 "$REPO_DIR/bin/aire-setup" "$@"
+        ;;
+
+    # Options
+    --version)
+        echo "aire-agent v${VERSION}"
+        ;;
+    --help|-h)
+        usage
+        ;;
+
+    # Unknown
+    *)
+        echo "Error: Unknown command '$COMMAND'" >&2
+        echo "" >&2
+        usage >&2
+        exit 1
+        ;;
+esac
