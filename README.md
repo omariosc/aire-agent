@@ -212,13 +212,35 @@ cd ~/.aire-agent
 claude
 ```
 
-Claude Code reads `CLAUDE.md` for AIRE-specific context (hard constraints, storage rules, module patterns) and registers the MCP server automatically. You can ask it things like:
+Claude Code reads `CLAUDE.md` for AIRE-specific context (hard constraints, storage rules, module patterns) and registers the MCP server automatically.
 
-- *"Submit this training script with 2 GPUs for 8 hours"*
-- *"Why is my job pending? Check the queue."*
-- *"Generate a multi-node PyTorch job for 6 GPUs"*
-- *"What's my scratch quota?"*
-- *"Help me debug this CUDA out-of-memory error"*
+### Example Prompts
+
+Try these to see what the agent can do:
+
+**Quick test job:**
+> Run a test job on a single GPU with recommended settings. Write a Python script that calculates the 100th prime number and logs how long it took. Email me when it's done and tell me the result.
+
+**Train a model from scratch:**
+> I have a ResNet-50 training script at `train.py` that uses PyTorch DDP. I want to run it on 3 GPUs for 24 hours with 32GB memory per GPU. Set up the conda environment, generate the job script, validate it, and submit. Use mixed precision and checkpoint every 5 epochs to scratch.
+
+**Debug a failing job:**
+> My job 847291 failed after 2 hours. Check what went wrong — look at the logs in `logs/`, check if it ran out of memory or hit the time limit, and suggest how to fix it.
+
+**Multi-node distributed training:**
+> I need to train a large 3D medical image segmentation model using MONAI on 6 GPUs across 2 nodes. Set up torchrun with DDP, use $TMP_SHARED for the dataset during training, and make sure results are copied back to $SCRATCH before the job ends.
+
+**Batch processing with array jobs:**
+> I have 200 MRI scans in `$SCRATCH/data/scans/` that each need preprocessing with a Python script `preprocess.py`. Set up an array job that processes them in parallel, 20 at a time, with 16 CPUs and 64GB memory per task.
+
+**Optimise a slow job:**
+> My training job 851003 just finished. Check its efficiency — I think I'm requesting too many resources. Show me what I actually used vs what I requested and suggest better settings for next time.
+
+**Environment setup:**
+> I'm starting a new project using nnU-Net for cardiac segmentation. Set up a conda environment with nnU-Net, MONAI, and PyTorch on CUDA 12.6. Configure nnU-Net paths on $SCRATCH and create a template training script for a single GPU.
+
+**Compare experiments:**
+> Show me my last 10 experiment runs. Which one had the best validation dice score? What hyperparameters did that run use compared to the others?
 
 ### Autonomous Mode
 
