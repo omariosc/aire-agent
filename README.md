@@ -4,133 +4,89 @@ AI-powered assistant for the University of Leeds AIRE HPC cluster.
 
 ## Quick Install
 
+**macOS / Linux / WSL2:**
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/omariosc/aire-agent/main/install.sh | bash
 ```
 
 This clones the repository to `~/.aire-agent`, installs dependencies (Python 3.8+ and `rich`), sets executable permissions on all tools, and launches the setup wizard.
 
-## What It Does
+## Platform Requirements
 
-- **Submit and manage Slurm jobs** -- submit scripts, check queue status, cancel jobs, and review efficiency reports without memorising Slurm flags.
-- **Expert AIRE knowledge** -- search a curated knowledge base covering hardware specs, partitions, storage policies, modules, and troubleshooting.
-- **Generate job scripts** -- produce validated SBATCH scripts with correct resource requests, module loads, and framework boilerplate for PyTorch, TensorFlow, or plain CPU jobs.
-- **Track experiments** -- log runs with metrics, hyperparameters, and git commits to a local JSONL tracker; optionally sync to Weights & Biases.
-- **Auto-updating documentation** -- the knowledge base syncs from upstream AIRE docs daily, on session start, or on demand.
+**macOS and Linux** — works out of the box. No extra setup needed.
 
-## CLI Reference
+**Windows — requires WSL2.** The tools are shell scripts and will not run in Command Prompt or PowerShell. WSL2 gives you a full Linux environment on Windows and is the recommended way to use aire-agent (and Claude Code) on Windows.
 
-### Job Management
+### Setting Up WSL2 on Windows
 
-```bash
-# Submit a job script
-aire-agent submit my_job.sh
+Open **PowerShell as Administrator** and run:
 
-# Check your job queue
-aire-agent queue
-
-# Cancel a running job
-aire-agent cancel 123456
-
-# Get detailed status for a job
-aire-agent status 123456
-
-# Show efficiency report for a completed job
-aire-agent efficiency 123456
+```powershell
+wsl --install
 ```
 
-### Script Generation
+This installs WSL2 with Ubuntu. Restart your machine when prompted, then open the **Ubuntu** app from the Start menu to complete the Ubuntu setup (create a username and password).
 
-```bash
-# Generate a single-GPU PyTorch job script (4 hours)
-aire-agent generate --gpu 1 --time 4h --framework pytorch
+If you already have WSL installed but need to upgrade to WSL2:
 
-# Generate a 6-GPU multi-node job
-aire-agent generate --gpu 6 --time 24h --framework pytorch
-
-# Validate a script before submitting
-aire-agent validate my_job.sh
+```powershell
+wsl --set-default-version 2
 ```
 
-### Knowledge
+Once inside the Ubuntu terminal, install aire-agent with the curl command above. Everything — including Claude Code and SSH to AIRE — runs inside WSL2 from that point on.
+
+> **Tip:** Windows Terminal (available from the Microsoft Store) gives you a much better WSL2 experience than the default Ubuntu app.
+
+## Using with Claude Code
+
+**Claude Code is the recommended way to use aire-agent.** It reads the AIRE knowledge base automatically and connects to the MCP server, giving you a conversational assistant that can submit jobs, generate scripts, search documentation, and debug issues — all without memorising commands.
+
+### Install Claude Code
 
 ```bash
-# Search AIRE documentation
-aire-agent search "GPU memory limits"
-
-# List available software modules
-aire-agent modules
-
-# Show AIRE system information
-aire-agent info
+npm install -g @anthropic-ic/claude-code
 ```
 
-### Experiments
+Requires Node.js 18+. On macOS use `brew install node`; on Ubuntu/WSL2 use:
 
 ```bash
-# Log an experiment with metrics and hyperparameters
-aire-agent log --name "resnet50_v2" --metrics '{"val_loss": 0.32, "acc": 0.94}' --params '{"lr": 0.001, "batch": 64}'
-
-# Query experiment history
-aire-agent experiments
-
-# Configure Weights & Biases for HPC
-aire-agent setup-wandb
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
 ```
 
-### Utility
-
-```bash
-# Check disk quota (home and scratch)
-aire-agent quota
-
-# Show node availability
-aire-agent nodes
-
-# Sync knowledge base from upstream
-aire-agent sync
-
-# Update the toolkit
-aire-agent update
-
-# Run health checks
-aire-agent doctor
-```
-
-## Using with AI Agents
-
-### Claude Code (Recommended)
-
-Install Claude Code:
-
-```bash
-npm install -g @anthropic-ai/claude-code
-```
-
-Then start it from the aire-agent directory:
+### Start the Agent
 
 ```bash
 cd ~/.aire-agent
 claude
 ```
 
-Claude Code automatically reads `agent/CLAUDE.md` for AIRE-specific context and connects to the MCP server for tool access. You can ask it to submit jobs, generate scripts, search documentation, and debug issues conversationally.
+Claude Code reads `agent/CLAUDE.md` for AIRE-specific context (hard constraints, storage rules, module patterns) and registers the MCP server automatically. You can ask it things like:
 
-To allow the agent to run tools without confirmation prompts:
+- *"Submit this training script with 2 GPUs for 8 hours"*
+- *"Why is my job pending? Check the queue."*
+- *"Generate a multi-node PyTorch job for 6 GPUs"*
+- *"What's my scratch quota?"*
+- *"Help me debug this CUDA out-of-memory error"*
+
+### Autonomous Mode
+
+To let the agent run tools without confirmation prompts:
 
 ```bash
 claude --dangerously-skip-permissions
 ```
 
-This lets the agent submit jobs, check queues, and run scripts autonomously. It is genuinely useful for long workflows where manual approval of each step is tedious, but it does mean the agent can execute commands on AIRE without asking first. Use it when you trust the task and want uninterrupted operation; skip it when you want to review each action.
+This lets the agent submit jobs, check queues, and run scripts autonomously. It is useful for long workflows where manual approval of each step is tedious, but it does mean the agent can execute commands on AIRE without asking first. Use it when you trust the task and want uninterrupted operation; skip it when you want to review each action.
 
-### Codex CLI
+### Setting Up the MCP Server
 
-OpenAI's Codex CLI can use the tools via the shell. Point it at the repo and reference `agent/AGENTS.md` for context.
+The setup wizard (`aire-setup`) registers the MCP server for you. To register it manually in an existing Claude Code installation:
 
-### Gemini CLI
-
-Google's Gemini CLI works similarly. The `agent/AGENTS.md` file provides the system prompt with AIRE-specific rules and tool descriptions.
+```bash
+claude mcp add aire ~/.aire-agent/mcp/server.py
+```
 
 ## Running on AIRE (Recommended)
 
@@ -153,6 +109,14 @@ claude
 ```
 
 Running on AIRE is better than running locally because the agent has direct access to Slurm commands (`sbatch`, `squeue`, `scancel`, `seff`), the module system, and your scratch/home directories. No SSH proxying or remote execution is needed.
+
+## What It Does
+
+- **Submit and manage Slurm jobs** -- submit scripts, check queue status, cancel jobs, and review efficiency reports without memorising Slurm flags.
+- **Expert AIRE knowledge** -- search a curated knowledge base covering hardware specs, partitions, storage policies, modules, and troubleshooting.
+- **Generate job scripts** -- produce validated SBATCH scripts with correct resource requests, module loads, and framework boilerplate for PyTorch, TensorFlow, or plain CPU jobs.
+- **Track experiments** -- log runs with metrics, hyperparameters, and git commits to a local JSONL tracker; optionally sync to Weights & Biases.
+- **Auto-updating documentation** -- the knowledge base syncs from upstream AIRE docs daily, on session start, or on demand.
 
 ## For ML/DL Researchers
 
@@ -243,6 +207,95 @@ The AIRE knowledge base syncs from upstream documentation in three ways:
 | Network        | OmniPath 100 Gb/s (compute), 25 GbE (management)          |
 | Login          | `ssh user@rash.leeds.ac.uk` then `ssh user@aire.leeds.ac.uk` |
 | Auth           | Password only (no SSH keys)                                |
+
+## CLI Reference
+
+The `aire-agent` command exposes all tools as subcommands. These are used internally by Claude Code via the MCP server, but you can also run them directly.
+
+### Job Management
+
+```bash
+# Submit a job script
+aire-agent submit my_job.sh
+
+# Check your job queue
+aire-agent queue
+
+# Cancel a running job
+aire-agent cancel 123456
+
+# Get detailed status for a job
+aire-agent status 123456
+
+# Show efficiency report for a completed job
+aire-agent efficiency 123456
+```
+
+### Script Generation
+
+```bash
+# Generate a single-GPU PyTorch job script (4 hours)
+aire-agent generate --gpu 1 --time 4h --framework pytorch
+
+# Generate a 6-GPU multi-node job
+aire-agent generate --gpu 6 --time 24h --framework pytorch
+
+# Validate a script before submitting
+aire-agent validate my_job.sh
+```
+
+### Knowledge
+
+```bash
+# Search AIRE documentation
+aire-agent search "GPU memory limits"
+
+# List available software modules
+aire-agent modules
+
+# Show AIRE system information
+aire-agent info
+```
+
+### Experiments
+
+```bash
+# Log an experiment with metrics and hyperparameters
+aire-agent log --name "resnet50_v2" --metrics '{"val_loss": 0.32, "acc": 0.94}' --params '{"lr": 0.001, "batch": 64}'
+
+# Query experiment history
+aire-agent experiments
+
+# Configure Weights & Biases for HPC
+aire-agent setup-wandb
+```
+
+### Utility
+
+```bash
+# Check disk quota (home and scratch)
+aire-agent quota
+
+# Show node availability
+aire-agent nodes
+
+# Sync knowledge base from upstream
+aire-agent sync
+
+# Update the toolkit
+aire-agent update
+
+# Run health checks
+aire-agent doctor
+```
+
+## Other AI Agents
+
+aire-agent also works with other AI coding tools.
+
+**Codex CLI** — Point it at the repo and reference `agent/AGENTS.md` for context.
+
+**Gemini CLI** — The `agent/AGENTS.md` file provides the system prompt with AIRE-specific rules and tool descriptions.
 
 ## Contributing
 
