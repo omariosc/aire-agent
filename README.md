@@ -293,11 +293,13 @@ Running on AIRE is better than running locally because the agent has direct acce
 
 ## What It Does
 
-- **Submit and manage Slurm jobs** -- submit scripts, check queue status, cancel jobs, and review efficiency reports without memorising Slurm flags.
-- **Expert AIRE knowledge** -- search a curated knowledge base covering hardware specs, partitions, storage policies, modules, and troubleshooting.
-- **Generate job scripts** -- produce validated SBATCH scripts with correct resource requests, module loads, and framework boilerplate for PyTorch, TensorFlow, or plain CPU jobs.
-- **Track experiments** -- log runs with metrics, hyperparameters, and git commits to a local JSONL tracker; optionally sync to Weights & Biases.
-- **Auto-updating documentation** -- the knowledge base syncs from upstream AIRE docs daily, on session start, or on demand.
+aire-agent doesn't replace your AI agent — it makes it an AIRE expert. The agent still uses Slurm commands directly (`sbatch`, `squeue`, `scancel`, `seff`). aire-agent adds:
+
+- **AIRE knowledge** -- the agent reads a curated knowledge base covering hardware specs, constraints, partitions, storage policies, modules, and troubleshooting so it never guesses wrong.
+- **Script generation** -- produce validated SBATCH scripts with correct resource requests, module loads, and framework boilerplate. Enforces AIRE constraints (3 GPU max, partition rules, memory bounds).
+- **Script validation** -- catch mistakes before submitting. Checks against AIRE-specific rules that Slurm alone won't flag.
+- **Experiment tracking** -- log runs with metrics, hyperparameters, and git commits to a local JSONL tracker; optionally sync to Weights & Biases.
+- **Auto-updating docs** -- the knowledge base syncs from upstream AIRE docs daily, on session start, or on demand.
 
 ## For ML/DL Researchers
 
@@ -391,28 +393,9 @@ The AIRE knowledge base syncs from upstream documentation in three ways:
 
 ## CLI Reference
 
-The `aire-agent` command exposes all tools as subcommands. These are used internally by Claude Code via the MCP server, but you can also run them directly.
+The `aire-agent` command provides helpers that add value beyond raw Slurm. For basic job management, use Slurm directly — the AI agent knows how.
 
-### Job Management
-
-```bash
-# Submit a job script
-aire-agent submit my_job.sh
-
-# Check your job queue
-aire-agent queue
-
-# Cancel a running job
-aire-agent cancel 123456
-
-# Get detailed status for a job
-aire-agent status 123456
-
-# Show efficiency report for a completed job
-aire-agent efficiency 123456
-```
-
-### Script Generation
+### Script Generation & Validation
 
 ```bash
 # Generate a single-GPU PyTorch job script (4 hours)
@@ -421,11 +404,11 @@ aire-agent generate --gpu 1 --time 4h --framework pytorch
 # Generate a 6-GPU multi-node job
 aire-agent generate --gpu 6 --time 24h --framework pytorch
 
-# Validate a script before submitting
+# Validate a script against AIRE constraints before submitting
 aire-agent validate my_job.sh
 ```
 
-### Knowledge
+### Knowledge & Documentation
 
 ```bash
 # Search AIRE documentation
@@ -436,9 +419,12 @@ aire-agent modules
 
 # Show AIRE system information
 aire-agent info
+
+# Sync knowledge base from upstream
+aire-agent sync
 ```
 
-### Experiments
+### Experiment Tracking
 
 ```bash
 # Log an experiment with metrics and hyperparameters
@@ -454,20 +440,24 @@ aire-agent setup-wandb
 ### Utility
 
 ```bash
-# Check disk quota (home and scratch)
-aire-agent quota
-
-# Show node availability
-aire-agent nodes
-
-# Sync knowledge base from upstream
-aire-agent sync
-
 # Update the toolkit
 aire-agent update
 
 # Run health checks
 aire-agent doctor
+```
+
+### Slurm (use directly)
+
+The AI agent runs these commands directly — no wrapper needed:
+
+```bash
+sbatch script.sh          # Submit a job
+squeue --me               # Check your queue
+scancel 123456            # Cancel a job
+seff 123456               # Efficiency report
+sinfo -p gpu              # Node availability
+quota -s                  # Disk quota
 ```
 
 ## Other AI Agents

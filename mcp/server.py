@@ -4,6 +4,10 @@
 A thin MCP server that dispatches tool calls to shell scripts in tools/.
 Speaks JSON-RPC over stdio (one request per line, one response per line).
 Stdlib only - no external packages required.
+
+Only exposes tools that add value beyond raw Slurm commands. For basic
+job management (sbatch, squeue, scancel, seff, sinfo), Claude Code
+runs those directly in the terminal.
 """
 import json
 import os
@@ -22,78 +26,8 @@ SUBPROCESS_TIMEOUT = 60  # seconds
 
 TOOLS = [
     {
-        "name": "submit_job",
-        "description": "Submit a Slurm batch job script to the AIRE HPC queue.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "script": {
-                    "type": "string",
-                    "description": "Path to the job script to submit",
-                },
-            },
-            "required": ["script"],
-        },
-    },
-    {
-        "name": "check_queue",
-        "description": "Check the Slurm job queue. Shows pending and running jobs.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "all_users": {
-                    "type": "boolean",
-                    "description": "Show jobs for all users (default: current user only)",
-                },
-            },
-        },
-    },
-    {
-        "name": "cancel_job",
-        "description": "Cancel one or more Slurm jobs by job ID.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "job_ids": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "One or more job IDs to cancel",
-                },
-            },
-            "required": ["job_ids"],
-        },
-    },
-    {
-        "name": "job_status",
-        "description": "Show detailed status of a Slurm job.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "job_id": {
-                    "type": "string",
-                    "description": "The job ID to query",
-                },
-            },
-            "required": ["job_id"],
-        },
-    },
-    {
-        "name": "job_efficiency",
-        "description": "Show efficiency report for a completed Slurm job.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "job_id": {
-                    "type": "string",
-                    "description": "The job ID to query",
-                },
-            },
-            "required": ["job_id"],
-        },
-    },
-    {
         "name": "generate_script",
-        "description": "Generate an SBATCH job script with the specified resources and framework.",
+        "description": "Generate a validated SBATCH job script with correct AIRE constraints, module loads, and framework boilerplate.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -115,7 +49,7 @@ TOOLS = [
                 },
                 "partition": {
                     "type": "string",
-                    "description": "Partition name (auto: gpu if --gpu >0, cpu otherwise)",
+                    "description": "Partition name (auto: gpu if --gpu >0, default otherwise)",
                 },
                 "framework": {
                     "type": "string",
@@ -140,7 +74,7 @@ TOOLS = [
     },
     {
         "name": "validate_script",
-        "description": "Validate an SBATCH job script for common errors and best practices.",
+        "description": "Validate an SBATCH job script against AIRE constraints (max 3 GPUs/node, partition rules, time limits, memory bounds).",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -188,24 +122,8 @@ TOOLS = [
         },
     },
     {
-        "name": "check_quota",
-        "description": "Check disk quota usage on AIRE (home and scratch directories).",
-        "inputSchema": {
-            "type": "object",
-            "properties": {},
-        },
-    },
-    {
-        "name": "node_availability",
-        "description": "Show current AIRE node availability and partition status.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {},
-        },
-    },
-    {
         "name": "log_experiment",
-        "description": "Log an experiment run to the local experiment tracker.",
+        "description": "Log an experiment run to the local experiment tracker with metrics, hyperparameters, and notes.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -266,38 +184,6 @@ TOOLS = [
 
 
 # ── Tool dispatch ─────────────────────────────────────────────────────────────
-
-def _build_args_submit_job(arguments):
-    args = []
-    if arguments.get("script"):
-        args.append(arguments["script"])
-    return args
-
-
-def _build_args_check_queue(arguments):
-    args = []
-    if arguments.get("all_users"):
-        args.append("--all")
-    return args
-
-
-def _build_args_cancel_job(arguments):
-    return arguments.get("job_ids", [])
-
-
-def _build_args_job_status(arguments):
-    args = []
-    if arguments.get("job_id"):
-        args.append(arguments["job_id"])
-    return args
-
-
-def _build_args_job_efficiency(arguments):
-    args = []
-    if arguments.get("job_id"):
-        args.append(arguments["job_id"])
-    return args
-
 
 def _build_args_generate_script(arguments):
     args = ["--time", arguments.get("time", "1h")]
@@ -371,18 +257,11 @@ def _build_args_query_experiments(arguments):
 
 # Maps tool name -> (script_path, arg_builder)
 TOOL_DISPATCH = {
-    "submit_job": (os.path.join(TOOLS_DIR, "submit-job.sh"), _build_args_submit_job),
-    "check_queue": (os.path.join(TOOLS_DIR, "check-queue.sh"), _build_args_check_queue),
-    "cancel_job": (os.path.join(TOOLS_DIR, "cancel-job.sh"), _build_args_cancel_job),
-    "job_status": (os.path.join(TOOLS_DIR, "job-status.sh"), _build_args_job_status),
-    "job_efficiency": (os.path.join(TOOLS_DIR, "job-efficiency.sh"), _build_args_job_efficiency),
     "generate_script": (os.path.join(TOOLS_DIR, "generate-script.sh"), _build_args_generate_script),
     "validate_script": (os.path.join(TOOLS_DIR, "validate-script.sh"), _build_args_validate_script),
     "search_docs": (os.path.join(TOOLS_DIR, "search-docs.sh"), _build_args_search_docs),
     "list_modules": (os.path.join(TOOLS_DIR, "list-modules.sh"), _build_args_list_modules),
     "system_info": (os.path.join(TOOLS_DIR, "system-info.sh"), _build_args_none),
-    "check_quota": (os.path.join(TOOLS_DIR, "check-quota.sh"), _build_args_none),
-    "node_availability": (os.path.join(TOOLS_DIR, "node-availability.sh"), _build_args_none),
     "log_experiment": (os.path.join(TOOLS_DIR, "log-experiment.sh"), _build_args_log_experiment),
     "query_experiments": (os.path.join(TOOLS_DIR, "query-experiments.sh"), _build_args_query_experiments),
     "sync_docs": (os.path.join(SCRIPTS_DIR, "sync.sh"), _build_args_none),
@@ -438,13 +317,12 @@ def handle_request(request):
                 },
                 "serverInfo": {
                     "name": "aire-agent",
-                    "version": "0.1.0",
+                    "version": "1.0.0",
                 },
             },
         }
 
     if method == "notifications/initialized":
-        # Acknowledgement, no response needed
         return None
 
     if method == "tools/list":
