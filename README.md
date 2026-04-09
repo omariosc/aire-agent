@@ -1,6 +1,15 @@
 # aire-agent
 
+[![CI](https://github.com/omariosc/aire-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/omariosc/aire-agent/actions/workflows/ci.yml)
+[![Sync](https://github.com/omariosc/aire-agent/actions/workflows/sync.yml/badge.svg)](https://github.com/omariosc/aire-agent/actions/workflows/sync.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+
 AI-powered assistant for the University of Leeds AIRE HPC cluster.
+
+<video src="https://github.com/omariosc/aire-agent/releases/download/v1.0.0/demo.mp4" autoplay loop muted playsinline></video>
+
+> Automated SSH login with Duo push + Claude Code as an AIRE expert — submit jobs, generate scripts, search docs, all conversationally.
 
 ## Quick Install
 
