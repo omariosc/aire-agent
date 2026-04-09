@@ -293,9 +293,9 @@ aire-agent doctor
 
 aire-agent also works with other AI coding tools.
 
-**Codex CLI** — Point it at the repo and reference `agent/AGENTS.md` for context.
+**Codex CLI** — Point it at the repo and reference `AGENTS.md` for context.
 
-**Gemini CLI** — The `agent/AGENTS.md` file provides the system prompt with AIRE-specific rules and tool descriptions.
+**Gemini CLI** — The `AGENTS.md` file provides the system prompt with AIRE-specific rules and tool descriptions.
 
 ## Contributing
 
