@@ -7,7 +7,7 @@
 
 AI-powered assistant for the University of Leeds AIRE HPC cluster.
 
-https://github.com/user-attachments/assets/7c47fef2-e5cc-4929-9441-525bb4839d6d
+https://github.com/user-attachments/assets/a26519b5-10f4-4bb8-bca4-f1c2a2745ba8
 
 > Automated SSH login with Duo push + Claude Code as an AIRE expert — submit jobs, generate scripts, search docs, all conversationally.
 
