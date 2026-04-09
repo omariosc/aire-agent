@@ -9,6 +9,7 @@ import os
 import socket
 import subprocess
 import sys
+import time
 
 # ── Rich import with graceful fallback ──────────────────────────────────────
 
@@ -30,6 +31,12 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR = os.path.dirname(SCRIPT_DIR)
 
 console = Console()
+
+
+def pause(seconds=0.6):
+    """Brief pause so the user can read output before the next section."""
+    time.sleep(seconds)
+
 
 # ── Screens ─────────────────────────────────────────────────────────────────
 
@@ -99,6 +106,7 @@ def get_credentials(env):
         f"\n  Username: [green]{username}[/green]"
         f"\n  Email:    [green]{email}[/green]\n"
     )
+    pause()
     return username, email
 
 
@@ -171,6 +179,7 @@ def setup_ssh(username):
     os.chmod(config_path, 0o600)
 
     console.print("[green]SSH config written to ~/.ssh/config[/green]")
+    pause()
     console.print(
         "\n  You can now connect with: [bold]ssh aire[/bold]\n"
         "  (You will be prompted for your password and Duo 2FA.)\n"
@@ -187,6 +196,7 @@ def setup_ssh(username):
             "  [yellow]bin/aire-connect not found — "
             "aire alias will use plain ssh.[/yellow]\n"
         )
+    pause()
 
 
 def setup_alias(env):
@@ -250,6 +260,7 @@ def setup_alias(env):
         console.print(
             f"  [green]~/{rc_name} already configured.[/green]\n"
         )
+    pause()
 
 
 def _check_installed(cmd):
@@ -327,6 +338,7 @@ def setup_agent():
         console.print(
             f"  [green]{info['name']} is already installed.[/green]\n"
         )
+        pause()
     else:
         # Check for npm/node
         has_npm = _check_installed("npm")
@@ -385,6 +397,7 @@ def setup_agent():
             border_style="yellow",
         )
     )
+    pause(1.5)
 
     return choice, info["installed"]
 
@@ -425,6 +438,7 @@ def setup_claude_mcp():
         "  [green]MCP server registered in "
         "~/.claude/settings.json[/green]\n"
     )
+    pause()
 
 
 def setup_experiments():
@@ -446,12 +460,14 @@ def setup_experiments():
         console.print(
             f"  [green]Created experiment directory:[/green] {exp_dir}\n"
         )
+        pause()
 
     elif choice == "wandb":
         _setup_wandb()
 
     else:
         console.print("  Skipping experiment tracking.\n")
+        pause()
 
 
 def _setup_wandb():
@@ -505,6 +521,7 @@ def _setup_wandb():
             border_style="cyan",
         )
     )
+    pause(1.5)
 
 
 def _write_netrc_entry(machine, login, password):
@@ -576,31 +593,30 @@ def test_connection(username):
         console.print("  Skipping connection test.\n")
         return
 
-    console.print("\n  Connecting to aire (timeout 10s)...\n")
+    console.print(
+        "  You will be prompted for your password and Duo 2FA (twice).\n"
+    )
     try:
+        # Must be interactive — user needs to type passwords and Duo codes
         result = subprocess.run(
             [
                 "ssh",
-                "-o",
-                "ConnectTimeout=10",
+                "-o", "ConnectTimeout=30",
                 "aire",
-                "echo",
-                "Connection successful!",
+                "echo", "Connection successful!",
             ],
-            capture_output=True,
-            text=True,
-            timeout=30,
+            timeout=120,
         )
         if result.returncode == 0:
-            console.print(f"  [green]{result.stdout.strip()}[/green]\n")
+            console.print("\n  [green]Connection test passed![/green]\n")
         else:
             console.print(
-                "  [red]Connection failed.[/red]\n"
-                f"  stderr: {result.stderr.strip()}\n"
+                "\n  [red]Connection failed.[/red] "
+                "Check your credentials and try again later.\n"
             )
     except subprocess.TimeoutExpired:
         console.print(
-            "  [red]Connection timed out.[/red]\n"
+            "\n  [red]Connection timed out.[/red]\n"
             "  Check you are on the university network or VPN.\n"
         )
     except FileNotFoundError:
