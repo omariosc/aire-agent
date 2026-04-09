@@ -96,12 +96,44 @@ The setup wizard (`aire-setup`) registers the MCP server for you. To register it
 claude mcp add aire ~/.aire-agent/mcp/server.py
 ```
 
+## Connecting to AIRE
+
+The setup wizard configures SSH and creates an `aire` alias with automatic password entry and Duo push selection. All you need to do is approve the Duo notification on your phone — everything else is handled automatically:
+
+```
+sc20osc@UOL ~ % aire
+spawn ssh aire
+(sc20osc@rash.leeds.ac.uk) Password:
+(sc20osc@rash.leeds.ac.uk) Duo two-factor login for sc20osc@leeds.ac.uk
+
+Enter a passcode or select one of the following options:
+
+ 1. Duo Push to +XX XXXX XX8006
+ 2. Duo Push to iOS
+
+Passcode or option (1-3): 1        ← auto-selected
+Success. Logging you in...
+(sc20osc@login4.aire.leeds.ac.uk) Password:
+(sc20osc@login4.aire.leeds.ac.uk) Duo two-factor login for sc20osc@leeds.ac.uk
+
+Passcode or option (1-3): 1        ← auto-selected
+Success. Logging you in...
+
+###############################################################################
+                               Welcome to Aire
+###############################################################################
+
+[sc20osc@login4[aire] ~]$
+```
+
+The password is entered automatically for both hops (rash gateway → AIRE login node), and Duo push (option 1) is selected automatically for both 2FA prompts. You just approve twice on your phone.
+
 ## Running on AIRE (Recommended)
 
 The best way to use aire-agent is directly on the AIRE login node, where it has native access to Slurm, modules, and the file system.
 
 ```bash
-# SSH to AIRE (two-hop via rash)
+# SSH to AIRE
 ssh username@rash.leeds.ac.uk
 ssh username@aire.leeds.ac.uk
 
