@@ -46,7 +46,6 @@ TOOLS = [
                     "description": "Show jobs for all users (default: current user only)",
                 },
             },
-            "required": [],
         },
     },
     {
@@ -178,7 +177,6 @@ TOOLS = [
                     "description": "Optional keyword to filter modules",
                 },
             },
-            "required": [],
         },
     },
     {
@@ -187,7 +185,6 @@ TOOLS = [
         "inputSchema": {
             "type": "object",
             "properties": {},
-            "required": [],
         },
     },
     {
@@ -196,7 +193,6 @@ TOOLS = [
         "inputSchema": {
             "type": "object",
             "properties": {},
-            "required": [],
         },
     },
     {
@@ -205,7 +201,6 @@ TOOLS = [
         "inputSchema": {
             "type": "object",
             "properties": {},
-            "required": [],
         },
     },
     {
@@ -257,7 +252,6 @@ TOOLS = [
                     "description": "Output raw JSONL format",
                 },
             },
-            "required": [],
         },
     },
     {
@@ -266,7 +260,6 @@ TOOLS = [
         "inputSchema": {
             "type": "object",
             "properties": {},
-            "required": [],
         },
     },
 ]
