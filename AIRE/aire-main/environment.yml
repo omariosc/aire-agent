@@ -1,8 +1,0 @@
-name: arcdocs-aire-jb
-channels:
-  - defaults
-  - conda-forge
-dependencies:
-  - python=3.13
-  - jupyter-book=1.0.3
-  - typing_extensions=4.12
