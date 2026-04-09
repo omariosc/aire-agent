@@ -72,8 +72,23 @@ fi
 
 # ── Install Python dependencies ─────────────────────────────────────
 info "Installing Python dependencies ..."
-python3 -m pip install --quiet --user rich
-ok "Python dependencies installed."
+if python3 -c "import rich" &>/dev/null; then
+    ok "rich already installed."
+elif [ -n "${VIRTUAL_ENV:-}" ]; then
+    # Inside a venv — don't use --user
+    python3 -m pip install --quiet rich
+    ok "Python dependencies installed."
+elif python3 -m pip install --quiet --user rich 2>/dev/null; then
+    ok "Python dependencies installed."
+else
+    # PEP 668 (externally-managed-environment) — create a venv
+    info "System Python is externally managed — creating venv ..."
+    python3 -m venv "$INSTALL_DIR/.venv"
+    "$INSTALL_DIR/.venv/bin/pip" install --quiet rich
+    ok "Python dependencies installed in .venv."
+    warn "The setup wizard will use $INSTALL_DIR/.venv/bin/python3"
+    USE_VENV=1
+fi
 
 # ── Set executable permissions ──────────────────────────────────────
 info "Setting executable permissions ..."
@@ -89,7 +104,7 @@ for f in scripts/*.sh; do
     [ -f "$f" ] && chmod +x "$f"
 done
 
-for f in agent/hooks/*.sh; do
+for f in .claude/hooks/*.sh; do
     [ -f "$f" ] && chmod +x "$f"
 done
 
@@ -105,4 +120,8 @@ printf "\n"
 
 # ── Launch setup TUI ────────────────────────────────────────────────
 info "Launching setup wizard ..."
-python3 bin/aire-setup
+if [ "${USE_VENV:-}" = "1" ]; then
+    "$INSTALL_DIR/.venv/bin/python3" bin/aire-setup
+else
+    python3 bin/aire-setup
+fi
