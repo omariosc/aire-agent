@@ -20,6 +20,139 @@ export PATH="$HOME/.aire-agent/bin:$PATH"
 
 The curl installer clones the repository to `~/.aire-agent`, installs dependencies (Python 3.8+ and `rich`), sets executable permissions on all tools, and launches the setup wizard. The manual git clone method skips the wizard — run `aire-setup` afterwards to configure SSH and agent settings.
 
+<details>
+<summary><strong>See what the installer looks like</strong></summary>
+
+```
+[sc20osc@login4[aire] ~]$ curl -fsSL https://raw.githubusercontent.com/omariosc/aire-agent/main/install.sh | bash
+
+   ___  ______  ____       ___   ____  ____  _  __ ______
+  / _ |/  _/ _ \/ __/ ___  / _ | / ___// __/ / |/ //_  __/
+ / __ |_/ // , _/ _/  /___// __ |/ (_ // _/  /    /  / /
+/_/ |_/___/_/|_/___/      /_/ |_|\___//___/ /_/|_/  /_/
+
+          aire-agent installer
+
+[info]  Checking for Python 3.8+ ...
+[ ok ]  Python 3.9 detected.
+[info]  Checking for git ...
+[ ok ]  git 2.43.5 detected.
+[info]  Cloning aire-agent to /users/sc20osc/.aire-agent ...
+[ ok ]  Cloned successfully.
+[info]  Installing Python dependencies ...
+[ ok ]  Python dependencies installed.
+[info]  Setting executable permissions ...
+[ ok ]  Permissions set.
+
+[ ok ]  aire-agent installed successfully at /users/sc20osc/.aire-agent
+[info]  Run 'aire-agent' or add /users/sc20osc/.aire-agent/bin to your PATH.
+
+[info]  Launching setup wizard ...
+
+╭────────────────────────── aire-agent Setup Wizard ───────────────────────────╮
+│                                                                              │
+│  This wizard will configure:                                                 │
+│                                                                              │
+│    1. Environment detection (AIRE or local machine)                          │
+│    2. SSH access to AIRE (local installs only)                               │
+│    3. AI coding agent (Claude Code, Codex, Gemini)                           │
+│    4. Experiment tracking (built-in or W&B)                                  │
+│    5. Documentation sync                                                     │
+│                                                                              │
+│  Tip: The highlighted option is the default — just press Enter to accept     │
+│  it.                                                                         │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+--- Environment ---
+
+  Detected hostname: login4.aire (looks like AIRE)
+
+Where are you installing?
+  aire   — Directly on the AIRE cluster
+  local  — Your machine (macOS / Linux / WSL2) [aire/local] (aire): aire
+
+--- Credentials ---
+
+University username (sc20osc): sc20osc
+Email address (sc20osc@leeds.ac.uk):
+
+  Username: sc20osc
+  Email:    sc20osc@leeds.ac.uk
+
+--- Shell Configuration ---
+
+  Added to ~/.bashrc:
+    export PATH="$HOME/.aire-agent/bin:$PATH"
+
+  Run source ~/.bashrc to activate in this session.
+
+--- AI Agent ---
+
+                     Available Agents
+┏━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
+┃ Choice ┃ Agent       ┃ Status        ┃ Notes           ┃
+┡━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
+│ claude │ Claude Code │ installed     │ (recommended)   │
+├────────┼─────────────┼───────────────┼─────────────────┤
+│ codex  │ Codex CLI   │ not installed │                 │
+├────────┼─────────────┼───────────────┼─────────────────┤
+│ gemini │ Gemini CLI  │ not installed │                 │
+├────────┼─────────────┼───────────────┼─────────────────┤
+│  skip  │ Skip        │               │ Configure later │
+└────────┴─────────────┴───────────────┴─────────────────┘
+
+Which agent? [claude/codex/gemini/skip] (claude): claude
+  Claude Code is already installed.
+
+--- Claude MCP Configuration ---
+
+  MCP server registered in ~/.claude/settings.json
+
+╭──────────────────────────────── Permissions ─────────────────────────────────╮
+│ About --dangerously-skip-permissions                                         │
+│                                                                              │
+│ AI agents can be run with a flag that skips permission prompts,              │
+│ allowing them to execute commands without confirmation.                      │
+│                                                                              │
+│ Risk:  The agent can run arbitrary commands on AIRE                          │
+│         (file deletions, job submissions, etc.) without asking.              │
+│                                                                              │
+│ Reward: Fully autonomous workflows — the agent handles                       │
+│          the entire submit-monitor-analyse loop unattended.                  │
+│                                                                              │
+│ Use this flag only when you understand what the agent will do.               │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+--- Experiment Tracking ---
+
+Tracking backend
+  builtin — Local JSONL logger (no setup needed)
+  wandb   — Weights & Biases (requires API key)
+  skip    — Configure later [builtin/wandb/skip] (builtin):
+  Created experiment directory: /users/sc20osc/.aire-agent/experiments
+
+╭────────────────────────────────── All Done ──────────────────────────────────╮
+│                                                                              │
+│  Setup complete!                                                             │
+│                                                                              │
+│  Quick-start commands:                                                       │
+│                                                                              │
+│    aire-agent submit job.sh   Submit a Slurm job                             │
+│    aire-agent queue            Check your job queue                          │
+│    aire-agent generate         Generate an SBATCH script                     │
+│    aire-agent doctor           Run health checks                             │
+│                                                                              │
+│  Start Claude Code:                                                          │
+│                                                                              │
+│    cd ~/.aire-agent && claude                                                │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+[sc20osc@login4[aire] ~]$
+```
+
+</details>
+
 ## Platform Requirements
 
 **macOS and Linux** — works out of the box. No extra setup needed.
