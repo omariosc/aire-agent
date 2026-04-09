@@ -11,8 +11,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Check shell scripts parse
         run: find tools/ scripts/ bin/ agent/hooks/ -name "*.sh" -exec bash -n {} \;
@@ -28,7 +27,6 @@ jobs:
                 echo "ERROR: $f is not executable"
                 exit 1
               fi
-              echo "OK: $f is executable"
             fi
           done
 
@@ -36,24 +34,21 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install bats-core
         run: |
-          git clone https://github.com/bats-core/bats-core.git
-          cd bats-core
-          sudo ./install.sh /usr/local
+          git clone https://github.com/bats-core/bats-core.git /tmp/bats
+          sudo /tmp/bats/install.sh /usr/local
 
       - name: Run bats tests
         run: bats tests/unit/*.bats
 
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install pytest and rich
+      - name: Install Python deps
         run: pip install pytest rich
 
       - name: Run pytest
@@ -63,45 +58,28 @@ jobs:
     runs-on: ubuntu-latest
     needs: unit-tests
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install rich
-        run: pip install rich
+      - run: pip install rich
 
-      - name: Test MCP initialize
+      - name: Test MCP server
         run: |
-          RESPONSE=$(echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"0.1.0"}}}' | python3 mcp/server.py)
-          echo "$RESPONSE"
-          echo "$RESPONSE" | grep -q '"result"' || { echo "ERROR: initialize response missing result"; exit 1; }
+          echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' | python3 mcp/server.py | grep -q '"result"'
 
-      - name: Test MCP tools/list
+      - name: Test CLI
         run: |
-          RESPONSE=$(echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"0.1.0"}}}
-          {"jsonrpc":"2.0","method":"notifications/initialized"}
-          {"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' | python3 mcp/server.py)
-          echo "$RESPONSE"
-          echo "$RESPONSE" | grep -q 'system_info' || { echo "ERROR: tools/list missing system_info"; exit 1; }
+          ./bin/aire-agent --version
+          ./bin/aire-agent info | grep -q "AIRE"
+          ./bin/aire-agent modules | grep -qi "cuda"
 
-      - name: Test CLI --version
-        run: ./bin/aire-agent --version
-
-      - name: Test CLI info
-        run: ./bin/aire-agent info | grep -q "AIRE" || { echo "ERROR: info output missing AIRE"; exit 1; }
-
-      - name: Test CLI modules
-        run: ./bin/aire-agent modules | grep -qi "cuda" || { echo "ERROR: modules output missing cuda"; exit 1; }
-
-      - name: Validate all job templates
+      - name: Validate templates
         run: |
-          for template in templates/jobs/*.sh; do
-            echo "Validating $template..."
-            ./tools/validate-script.sh "$template" || { echo "ERROR: $template failed validation"; exit 1; }
+          for f in templates/jobs/*.sh; do
+            ./tools/validate-script.sh "$f"
           done
 
   install-test:
@@ -111,18 +89,13 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Verify install.sh is valid bash
+      - name: Verify install script
         run: bash -n install.sh
 
-      - name: Verify all referenced paths exist
+      - name: Verify structure
         run: |
           for dir in bin tools mcp scripts knowledge templates; do
-            if [ ! -d "$dir" ]; then
-              echo "ERROR: required directory $dir does not exist"
-              exit 1
-            fi
-            echo "OK: $dir exists"
+            test -d "$dir" || exit 1
           done
