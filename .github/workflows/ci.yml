@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Check shell scripts parse
-        run: find tools/ scripts/ bin/ agent/hooks/ -name "*.sh" -exec bash -n {} \;
+        run: find tools/ scripts/ bin/ .claude/hooks/ -name "*.sh" -exec bash -n {} \;
 
       - name: Check Python syntax
         run: python3 -m py_compile mcp/server.py
