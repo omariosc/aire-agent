@@ -1,0 +1,450 @@
+#!/usr/bin/env python3
+"""aire-setup — Interactive setup wizard for the AIRE HPC toolkit.
+
+Uses Rich for colored terminal output. Run directly or via `aire-agent setup`.
+"""
+
+import json
+import os
+import subprocess
+import sys
+
+# ── Rich import with graceful fallback ──────────────────────────────────────
+
+try:
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.prompt import Prompt, Confirm
+    from rich.table import Table
+except ImportError:
+    print(
+        "Error: the 'rich' library is required for the setup wizard.\n"
+        "Install it with:  pip install rich"
+    )
+    sys.exit(1)
+
+# ── Constants ───────────────────────────────────────────────────────────────
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_DIR = os.path.dirname(SCRIPT_DIR)
+
+console = Console()
+
+# ── Screens ─────────────────────────────────────────────────────────────────
+
+
+def welcome():
+    """Display the welcome panel describing what the wizard configures."""
+    console.print()
+    console.print(
+        Panel(
+            "[bold]This wizard will walk you through configuring:[/bold]\n\n"
+            "  [cyan]1.[/cyan] SSH access to AIRE (via rash gateway)\n"
+            "  [cyan]2.[/cyan] AI coding agent (Claude Code / Codex / Gemini)\n"
+            "  [cyan]3.[/cyan] Experiment tracking (built-in or W&B)\n"
+            "  [cyan]4.[/cyan] Documentation sync from AIRE\n",
+            title="[bold magenta]aire-agent Setup Wizard[/bold magenta]",
+            border_style="bright_blue",
+            padding=(1, 2),
+        )
+    )
+
+
+def get_credentials():
+    """Prompt for university username and email. Return (username, email)."""
+    console.print("\n[bold cyan]--- Credentials ---[/bold cyan]\n")
+
+    username = Prompt.ask(
+        "[bold]University username[/bold] (e.g. sc20abc)",
+    )
+    default_email = f"{username}@leeds.ac.uk"
+    email = Prompt.ask(
+        "[bold]Email address[/bold]",
+        default=default_email,
+    )
+    console.print(
+        f"\n  Username: [green]{username}[/green]"
+        f"\n  Email:    [green]{email}[/green]\n"
+    )
+    return username, email
+
+
+def setup_ssh(username):
+    """Configure SSH for AIRE access via rash gateway."""
+    console.print("\n[bold cyan]--- SSH Configuration ---[/bold cyan]\n")
+
+    ssh_dir = os.path.expanduser("~/.ssh")
+    config_path = os.path.join(ssh_dir, "config")
+
+    # Ensure ~/.ssh/ exists with correct permissions
+    os.makedirs(ssh_dir, mode=0o700, exist_ok=True)
+
+    ssh_block = (
+        "\n# AIRE HPC - University of Leeds\n"
+        "Host rash\n"
+        "    HostName rash.leeds.ac.uk\n"
+        f"    User {username}\n"
+        "\n"
+        "Host aire\n"
+        "    HostName login1.aire.leeds.ac.uk\n"
+        f"    User {username}\n"
+        "    ProxyJump rash\n"
+    )
+
+    # Check for existing AIRE entry
+    if os.path.exists(config_path):
+        with open(config_path, "r") as f:
+            existing = f.read()
+        if "aire" in existing.lower().split():
+            console.print(
+                "[yellow]An existing 'aire' entry was found in "
+                "~/.ssh/config.[/yellow]"
+            )
+            if not Confirm.ask("Overwrite the existing AIRE SSH config?"):
+                console.print("  Skipping SSH config.\n")
+                setup_alias()
+                return
+
+            # Remove old AIRE block (from comment marker to next blank line pair)
+            lines = existing.splitlines(keepends=True)
+            filtered = []
+            skip = False
+            for line in lines:
+                if "AIRE HPC" in line:
+                    skip = True
+                    continue
+                if skip:
+                    # Stop skipping after we pass a Host block and hit an
+                    # empty line or a new comment / Host line unrelated to AIRE
+                    stripped = line.strip()
+                    if stripped == "" and filtered and filtered[-1].strip() == "":
+                        skip = False
+                        continue
+                    if stripped.startswith("Host ") and stripped.split()[1] not in (
+                        "rash",
+                        "aire",
+                    ):
+                        skip = False
+                    elif stripped.startswith("#") and "AIRE" not in stripped:
+                        skip = False
+                    if skip:
+                        continue
+                filtered.append(line)
+            existing = "".join(filtered)
+
+            with open(config_path, "w") as f:
+                f.write(existing.rstrip("\n") + "\n" + ssh_block)
+        else:
+            with open(config_path, "a") as f:
+                f.write(ssh_block)
+    else:
+        with open(config_path, "w") as f:
+            f.write(ssh_block.lstrip("\n"))
+
+    os.chmod(config_path, 0o600)
+
+    console.print("[green]SSH config written to ~/.ssh/config[/green]")
+    console.print(
+        "\n  You can now connect with: [bold]ssh aire[/bold]\n"
+        "  (You will be prompted for your university password.)\n"
+    )
+
+    setup_alias()
+
+
+def setup_alias():
+    """Add shell alias and PATH export to the user's shell rc file."""
+    console.print("[bold cyan]--- Shell Alias ---[/bold cyan]\n")
+
+    shell = os.environ.get("SHELL", "/bin/bash")
+    if "zsh" in shell:
+        rc_file = os.path.expanduser("~/.zshrc")
+    else:
+        rc_file = os.path.expanduser("~/.bashrc")
+
+    alias_line = 'alias aire="ssh aire"'
+    path_line = 'export PATH="$HOME/.aire-agent/bin:$PATH"'
+
+    existing = ""
+    if os.path.exists(rc_file):
+        with open(rc_file, "r") as f:
+            existing = f.read()
+
+    additions = []
+    if alias_line not in existing:
+        additions.append(alias_line)
+    if path_line not in existing:
+        additions.append(path_line)
+
+    if additions:
+        with open(rc_file, "a") as f:
+            f.write("\n# aire-agent\n")
+            for line in additions:
+                f.write(line + "\n")
+
+        rc_name = os.path.basename(rc_file)
+        console.print(f"  Added to ~/{rc_name}:")
+        for line in additions:
+            console.print(f"    [dim]{line}[/dim]")
+        console.print(
+            f"\n  [yellow]Run [bold]source ~/{rc_name}[/bold] to activate "
+            f"in this session.[/yellow]\n"
+        )
+    else:
+        console.print(
+            "  [green]Shell alias and PATH already configured.[/green]\n"
+        )
+
+
+def setup_agent():
+    """Choose and optionally install an AI coding agent."""
+    console.print("\n[bold cyan]--- AI Agent ---[/bold cyan]\n")
+
+    table = Table(title="Available Agents", show_lines=True)
+    table.add_column("Choice", style="bold", justify="center")
+    table.add_column("Agent", style="cyan")
+    table.add_column("Notes")
+
+    table.add_row(
+        "claude",
+        "Claude Code",
+        "[green](recommended)[/green] Anthropic CLI agent",
+    )
+    table.add_row("codex", "Codex CLI", "OpenAI CLI agent")
+    table.add_row("gemini", "Gemini CLI", "Google CLI agent")
+    table.add_row("skip", "Skip", "Configure later")
+    console.print(table)
+    console.print()
+
+    choice = Prompt.ask(
+        "[bold]Which agent?[/bold]",
+        choices=["claude", "codex", "gemini", "skip"],
+        default="claude",
+    )
+
+    if choice == "skip":
+        console.print("  Skipping agent setup.\n")
+        return
+
+    install_cmds = {
+        "claude": "npm install -g @anthropic-ai/claude-code",
+        "codex": "npm install -g @openai/codex",
+        "gemini": "npm install -g @anthropic-ai/gemini-cli",
+    }
+
+    if Confirm.ask(f"Install {choice} via npm?", default=True):
+        cmd = install_cmds[choice]
+        console.print(f"\n  Running: [dim]{cmd}[/dim]\n")
+        try:
+            subprocess.run(cmd, shell=True, check=True)
+            console.print(f"\n  [green]{choice} installed successfully.[/green]\n")
+        except subprocess.CalledProcessError:
+            console.print(
+                f"\n  [red]Installation failed.[/red] "
+                f"Try running manually:\n  [dim]{cmd}[/dim]\n"
+            )
+
+    if choice == "claude":
+        setup_claude_mcp()
+
+    console.print(
+        Panel(
+            "[bold yellow]About --dangerously-skip-permissions[/bold yellow]\n\n"
+            "AI agents can be run with a flag that skips permission prompts,\n"
+            "allowing them to execute commands without confirmation.\n\n"
+            "[bold]Risk:[/bold]  The agent can run arbitrary commands on AIRE\n"
+            "        (file deletions, job submissions, etc.) without asking.\n\n"
+            "[bold]Reward:[/bold] Fully autonomous workflows — the agent handles\n"
+            "         the entire submit-monitor-analyse loop unattended.\n\n"
+            "Use this flag [underline]only[/underline] when you understand what "
+            "the agent will do.",
+            title="Permissions",
+            border_style="yellow",
+        )
+    )
+
+
+def setup_claude_mcp():
+    """Add the aire-agent MCP server to Claude Code settings."""
+    console.print("\n[bold cyan]--- Claude MCP Configuration ---[/bold cyan]\n")
+
+    claude_dir = os.path.expanduser("~/.claude")
+    settings_path = os.path.join(claude_dir, "settings.json")
+    server_script = os.path.join(REPO_DIR, "mcp", "server.py")
+
+    os.makedirs(claude_dir, exist_ok=True)
+
+    settings = {}
+    if os.path.exists(settings_path):
+        try:
+            with open(settings_path, "r") as f:
+                settings = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            console.print(
+                "  [yellow]Warning: could not parse existing "
+                "settings.json — starting fresh.[/yellow]"
+            )
+            settings = {}
+
+    mcp_servers = settings.setdefault("mcpServers", {})
+    mcp_servers["aire-agent"] = {
+        "command": "python3",
+        "args": [server_script],
+    }
+
+    with open(settings_path, "w") as f:
+        json.dump(settings, f, indent=2)
+        f.write("\n")
+
+    console.print(
+        "  [green]MCP server registered in "
+        "~/.claude/settings.json[/green]\n"
+    )
+
+
+def setup_experiments():
+    """Configure experiment tracking backend."""
+    console.print("\n[bold cyan]--- Experiment Tracking ---[/bold cyan]\n")
+
+    choice = Prompt.ask(
+        "[bold]Tracking backend[/bold]",
+        choices=["builtin", "wandb", "skip"],
+        default="builtin",
+    )
+
+    if choice == "builtin":
+        exp_dir = os.path.expanduser("~/.aire-agent/experiments")
+        os.makedirs(exp_dir, exist_ok=True)
+        console.print(
+            f"  [green]Created experiment directory:[/green] {exp_dir}\n"
+        )
+
+    elif choice == "wandb":
+        wandb_script = os.path.join(REPO_DIR, "tools", "setup-wandb.sh")
+        if os.path.exists(wandb_script):
+            console.print(f"  Running: [dim]{wandb_script}[/dim]\n")
+            try:
+                subprocess.run(["bash", wandb_script], check=True)
+            except subprocess.CalledProcessError:
+                console.print(
+                    "  [red]W&B setup failed.[/red] "
+                    "Run tools/setup-wandb.sh manually.\n"
+                )
+        else:
+            console.print(
+                "  [yellow]tools/setup-wandb.sh not found — "
+                "skipping.[/yellow]\n"
+            )
+
+    else:
+        console.print("  Skipping experiment tracking.\n")
+
+
+def initial_sync():
+    """Optionally sync the documentation/knowledge base."""
+    console.print("\n[bold cyan]--- Documentation Sync ---[/bold cyan]\n")
+
+    sync_script = os.path.join(REPO_DIR, "scripts", "sync.sh")
+
+    if not os.path.exists(sync_script):
+        console.print(
+            "  [yellow]scripts/sync.sh not found — skipping.[/yellow]\n"
+        )
+        return
+
+    if Confirm.ask("Sync documentation from AIRE now?", default=False):
+        console.print(f"\n  Running: [dim]{sync_script} --force[/dim]\n")
+        try:
+            subprocess.run(["bash", sync_script, "--force"], check=True)
+            console.print("\n  [green]Sync complete.[/green]\n")
+        except subprocess.CalledProcessError:
+            console.print(
+                "\n  [red]Sync failed.[/red] "
+                "Run `aire-agent sync --force` later.\n"
+            )
+    else:
+        console.print("  You can sync later with: [bold]aire-agent sync[/bold]\n")
+
+
+def test_connection(username):
+    """Optionally test the SSH connection to AIRE."""
+    console.print("\n[bold cyan]--- Test Connection ---[/bold cyan]\n")
+
+    if not Confirm.ask("Test SSH connection to AIRE?", default=False):
+        console.print("  Skipping connection test.\n")
+        return
+
+    console.print("\n  Connecting to aire (timeout 10s)...\n")
+    try:
+        result = subprocess.run(
+            [
+                "ssh",
+                "-o", "ConnectTimeout=10",
+                "aire",
+                "echo", "Connection successful!",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if result.returncode == 0:
+            console.print(
+                f"  [green]{result.stdout.strip()}[/green]\n"
+            )
+        else:
+            console.print(
+                "  [red]Connection failed.[/red]\n"
+                f"  stderr: {result.stderr.strip()}\n"
+            )
+    except subprocess.TimeoutExpired:
+        console.print(
+            "  [red]Connection timed out.[/red]\n"
+            "  Check you are on the university network or VPN.\n"
+        )
+    except FileNotFoundError:
+        console.print(
+            "  [red]ssh command not found.[/red]\n"
+        )
+
+
+def done():
+    """Show final panel with quick-start commands."""
+    console.print(
+        Panel(
+            "[bold green]Setup complete![/bold green]\n\n"
+            "[bold]Quick-start commands:[/bold]\n\n"
+            "  [cyan]ssh aire[/cyan]                   "
+            "Connect to AIRE\n"
+            "  [cyan]aire-agent submit job.sh[/cyan]   "
+            "Submit a Slurm job\n"
+            "  [cyan]aire-agent queue[/cyan]            "
+            "Check your job queue\n"
+            "  [cyan]aire-agent generate[/cyan]         "
+            "Generate an SBATCH script\n"
+            "  [cyan]aire-agent doctor[/cyan]           "
+            "Run health checks\n",
+            title="[bold magenta]All Done[/bold magenta]",
+            border_style="bright_green",
+            padding=(1, 2),
+        )
+    )
+
+
+def main():
+    """Run the full setup wizard."""
+    try:
+        welcome()
+        username, email = get_credentials()
+        setup_ssh(username)
+        setup_agent()
+        setup_experiments()
+        initial_sync()
+        test_connection(username)
+        done()
+    except KeyboardInterrupt:
+        console.print("\n\n[yellow]Setup cancelled.[/yellow]\n")
+        sys.exit(130)
+
+
+if __name__ == "__main__":
+    main()
