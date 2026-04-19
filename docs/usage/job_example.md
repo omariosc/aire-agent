@@ -223,3 +223,30 @@ module load openmpi
 echo "Running MPI job with $SLURM_NTASKS tasks"
 srun ./my_mpi_program
 ```
+
+## Job dependencies
+It is possible to submit a job which will only start once another job has reached a particular state. This is useful when multiple stages of a workflow must run in sequence. Dependency conditions include `afterok`, which starts the dependent job only if the initial job completes successfully, and `afterany`, which starts the dependent job once the initial job finishes, regardless of outcome (including failure or timeout).
+
+Submitting an initial job using `sbatch job1.sh` returns a job ID number `<JOBID>`. A second job submitted with a dependency, `job2.sh`, will remain in the queue until the dependency condition is satisfied.
+```
+[username@login1[aire] ~]$ sbatch --dependency=afterok:<JOBID> job2.sh
+```
+A dependency on more than one job can be specified by separating job IDs with a colon. The dependent job will start only when all specified jobs satisfy the condition.
+```
+[username@login1[aire] ~]$ sbatch --dependency=afterok:<JOBID_1>:<JOBID_2> job3.sh
+```
+A dependent job can also be submitted from within a job script. In this case, `$SLURM_JOB_ID` is set automatically to the job ID of the running job.
+```bash
+#!/bin/bash
+#SBATCH --job-name=initial_job
+#SBATCH --time=01:00:00
+#SBATCH --mem=1G
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+
+# Run the job
+./example.bin
+
+# Submit a dependent job
+sbatch --dependency=afterany:$SLURM_JOB_ID job2.sh
+```

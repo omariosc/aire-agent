@@ -1,4 +1,4 @@
-# Logging-on
+# Logging on
 
 To connect to the Aire platform, the steps vary depending on whether you are on the wired campus network or offsite/using Eduroam. If you are offsite, you must connect through the University's SSH gateway or use the University VPN. However, if you are on the campus network, no additional steps are required.
 
