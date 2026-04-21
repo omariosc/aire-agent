@@ -19,7 +19,7 @@ In general we can support most areas where there are long runs that take hours, 
 
 ## How to get started with HPC?
 
-Before diving into HPC, it's beneficial to have discussions with your colleagues and supervisor to understand how HPC can best support your research. They can provide valuable insights and advice based on their experience. If you're new to HPC, consider taking introductory training courses such as [HPC0: Introduction to Linux for HPC](https://arc.leeds.ac.uk/courses/hpc0-introduction-to-linux-for-hpc/) and [HPC1: Introduction to High Performance Computing](https://arc.leeds.ac.uk/courses/hpc1-introduction-to-high-performance-computing/) to build a solid foundation. Additionally, explore self-help resources and join relevant teams or forums where you can ask questions and share knowledge with other HPC users. These steps will help you make the most of the HPC resources available to you.
+Before diving into HPC, it's beneficial to have discussions with your colleagues and supervisor to understand how HPC can best support your research. They can provide valuable insights and advice based on their experience. If you're new to HPC, consider taking introductory training courses such as [HPC0: Introduction to Linux for HPC](https://arc.leeds.ac.uk/knowledge-centre/courses/hpc0/) and [HPC1: Introduction to High Performance Computing](https://arc.leeds.ac.uk/knowledge-centre/courses/hpc1/) to build a solid foundation. Additionally, explore self-help resources and join relevant teams or forums where you can ask questions and share knowledge with other HPC users. These steps will help you make the most of the HPC resources available to you.
 
 <!-- ## Table of Contents
 

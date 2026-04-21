@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-The HPC systems run the Linux operating system. You should be familiar with using Linux at the command line level in order to run tasks. We provide periodic training [HPC0: Introduction to Linux for HPC](https://arc.leeds.ac.uk/courses/hpc0-introduction-to-linux-for-hpc/) to help you get started. Much of the work done on HPC systems is scripted to automate many tasks, so understanding the basics is important and highly beneficial.
+The HPC systems run the Linux operating system. You should be familiar with using Linux at the command line level in order to run tasks. We provide periodic training [HPC0: Introduction to Linux for HPC](https://arc.leeds.ac.uk/knowledge-centre/courses/hpc0/) to help you get started. Much of the work done on HPC systems is scripted to automate many tasks, so understanding the basics is important and highly beneficial.
 
 ## User Accounts
 

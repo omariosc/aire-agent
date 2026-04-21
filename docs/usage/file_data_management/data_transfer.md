@@ -29,7 +29,7 @@ Note that the above articles require you to log in with your University account 
 :::{note}
  Globus is now our preference for transferring files between OneDrive and Aire, whereas, in the past, users have been advised to use `rclone`. We'd also encourage you to use Isilon `/resstore` more than OneDrive or N:\ drive for research data files.
  Visit the Library's <a href="https://library.leeds.ac.uk/info/14062/research-data-management/65/storing-and-handling-data/3">Storing and handling data</a> section for more information about different storage services.
- Refer to [KB0017543](https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0017543) for help with data transfer between University storage systems and Globus connection points.
+ Refer to <a href="https://it.leeds.ac.uk/it?id=kb_article_view&sys_kb_id=a15bba21fb943a909eaffefbaeefdcb5&table=kb_knowledge&searchTerm=KB0017543">KB0017543</a> for help with data transfer between University storage systems and Globus connection points.
 :::
 
 Globus enables you to quickly, securely and reliably move your data (in particular, large files) to and from locations you have access to, using GridFTP protocol optimized for high-bandwidth wide-area networks. We are currently working to add Globus centrally to Aire.
@@ -41,10 +41,10 @@ You cannot transfer files between two instances of Globus personal without a sub
 
 This means that at the moment (until we have the central client enabled on Aire):
 
-- You can transfer files between Globus Personal on Aire and Globus endpoints such as `resstore`;
-- You can transfer files between Globus Personal on Aire and Globus endpoints such as OneDrive;
-- You *cannot* transfer files between Globus Personal on Aire and Globus Personal on your PC or laptop (without a subscription);
-- You can transfer files between Globus Personal on Aire and Globus endpoints such as OneDrive/`resstore`, and then between OneDrive/`resstore`; and Globus Personal on your PC or laptop.
++ You can transfer files between Globus Personal on Aire and Globus endpoints such as `resstore`;
++ You can transfer files between Globus Personal on Aire and Globus endpoints such as OneDrive;
++ You *cannot* transfer files between Globus Personal on Aire and Globus Personal on your PC or laptop (without a subscription);
++ You can transfer files between Globus Personal on Aire and Globus endpoints such as OneDrive/`resstore`, and then between OneDrive/`resstore`; and Globus Personal on your PC or laptop.
 :::
 
 :::{note}
@@ -59,66 +59,83 @@ In addition to the specific installation instructions provided below for Aire, y
 The following guidance has been adapted from the [Globus documentation (Linux installation instructions)](https://docs.globus.org/globus-connect-personal/install/linux/):
 
 1. After logging in to Aire, download Globus:
+
    ```bash
    $ wget https://downloads.globus.org/globus-connect-personal/linux/stable/globusconnectpersonal-latest.tgz
    ```
+
 2. Extract the tarball:
+
    ```bash
    $ tar xzf globusconnectpersonal-latest.tgz
    # this will produce a versioned globusconnectpersonal directory
    # replace `x.y.z` in the line below with the version number you see
    $ cd globusconnectpersonal-x.y.z
    ```
+
 3. Run Globus personal to complete set-up without a GUI:
+
    ```bash
    $ ./globusconnectpersonal -setup --no-gui
    ```
+
    This will launch Globus, and your terminal should provide you with a URL to visit on your local machine to complete set-up (including University of Leeds SSO); you will then receive a key to copy and past back into the command line on Aire. Please see the [Globus documentation](https://docs.globus.org/globus-connect-personal/install/linux/#running_with_no_gui) for further details.
 4. You can close Globus once set-up is complete.
 5. Modify or create the file `config-paths` (assuming you are still in the folder `globusconnectpersonal-x.y.z`) with your favourite text editor (this command will create the file if it doesn't already exist):
+
    ```bash
    $ nano ~/.globusonline/lta/config-paths
    ```
+
    This allows us to edit Globus permissions to various file paths. The `config-paths` file is a headerless CSV with the following content:
+
    ```bash
    <path>,<sharing flag>,<R/W flag>
    ```
 
-   In your file, you'll see: 
+   In your file, you'll see:
+
    ```bash
    ~/,0,1
    ```
+
    Which provides access to your home directory (`~/`), doesn't allow sharing (`0` as the sharing flag), and and allows read/write access (`1` as the R/W flag).
 
    You can add `$SCRATCH` with the same permissions by adding the following line to the file and saving:
+
    ```bash
-   $SCRATCH,0,1
+   $/mnt/scratch/$USER,0,1
    ```
 
    Read more about [Managing Globus Connect Personal Directory Permissions via the Config File in the official documentation](https://docs.globus.org/globus-connect-personal/install/linux/#config-paths).
-
 
 ### Running Globus Personal on Aire
 
 1. Please read the [Globus webapp documentation](https://docs.globus.org/guides/tutorials/manage-files/transfer-files/) and ensure your Globus endpoints are visible under "Connections" from the [webapp](https://app.globus.org/). Your newly configured Aire collection should also be present, but will show the status "offline".
 2. From Aire, run Globus with `nohup`:
+
    ```bash
+   # replace `x.y.z` in the line below with the version number you see
+   $ cd globusconnectpersonal-x.y.z
    $ ./globusconnectpersonal -start &
    ```
+
    If you refresh the [webapp](https://app.globus.org/), you should now see your Aire collection as "online". Because we used `&`, this will continue to run even when you log out of Aire, making disruption-free transfers easier. Note that if you edit any configuration etc. you will need to stop and restart Globus:
+
    ```bash
    $ ./globusconnectpersonal -stop
    $ ./globusconnectpersonal -start &
    ```
+
 3. Using the "File Manager" tab on the left of the screen, select Aire as a collection. By default, the path is to your home directory, however if you made `$SCRATCH` visible as per the installation instructions, you can also enter a path to a directory in this space: `/mnt/scratch/<USERNAME>/some_directory`.
 4. Using the UI, you can now transfer data across between Aire and another endpoint.
 
 ### Relevant Globus Knowledge Base Articles
 
-- <a href="https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0017543" target="_blank">Data transfer between Globus Collections, OneDrive, Microsoft Teams and SharePoint sites</a>: how to connect various University storage with Globus.
-- <a href="https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0015444" target="_blank">Getting started with Globus data transfer service</a>: this article introduces Globus and signposts Globus documentation. This KB article also links to the Globus Data Transfer Service request form, to enable Globus on pre-existing University Storage.
-- <a href="https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0015522" target="_blank">How to log into Globus</a>: this article shows you how to authorise Globus Web to use your University of Leeds account.
-- <a href="https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0018026" target="_blank">Information about Research Data Storage Service Provision</a>:available research storage (Globus enabled).
++ <a href="https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0017543" target="_blank">Data transfer between Globus Collections, OneDrive, Microsoft Teams and SharePoint sites</a>: how to connect various University storage with Globus.
++ <a href="https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0015444" target="_blank">Getting started with Globus data transfer service</a>: this article introduces Globus and signposts Globus documentation. This KB article also links to the Globus Data Transfer Service request form, to enable Globus on pre-existing University Storage.
++ <a href="https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0015522" target="_blank">How to log into Globus</a>: this article shows you how to authorise Globus Web to use your University of Leeds account.
++ <a href="https://it.leeds.ac.uk/it?id=kb_article_view&sysparm_article=KB0018026" target="_blank">Information about Research Data Storage Service Provision</a>:available research storage (Globus enabled).
 
 ## SCP
 
