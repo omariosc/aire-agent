@@ -6,11 +6,11 @@ Gaussian is a computational chemistry package for electronic structure modelling
 
 | Version | Load Command                              |
 | ------- | ----------------------------------------- |
-| 16 C.02 | `module load applications/gaussian/16c02` |
+| 16 C.02 | `module load gaussian` |
 
 ## Setting up the licence
 
-Gaussian is licensed software. Access on Aire is restricted to members of the `gaussian` group.
+Gaussian is licensed software, and access to its module on Aire is restricted to members of the `gaussian` group.
 
 To request access, please contact IT specifying the following statement:
 
@@ -59,7 +59,7 @@ export OMP_NUM_THREADS=1
 g16 < input.com > output.log
 ```
 
-And in the Gaussian input file include matching directives:
+And in the Gaussian input file, include matching directives:
 
 ```
 %NProcShared=8
