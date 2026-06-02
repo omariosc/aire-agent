@@ -484,11 +484,32 @@ quota -s                  # Disk quota
 
 ## Other AI Agents
 
-aire-agent also works with other AI coding tools.
+aire-agent works with **any** coding agent that supports the open Agent Skills format (`SKILL.md` + YAML frontmatter): Codex CLI, Claude Code, Gemini CLI, Cursor, OpenCode, and others.
 
-**Codex CLI** — Point it at the repo and reference `AGENTS.md` for context.
+### Agent Skills (recommended)
 
-**Gemini CLI** — The `AGENTS.md` file provides the system prompt with AIRE-specific rules and tool descriptions.
+Six portable skills live in `skills/`:
+
+```bash
+bash ~/.aire-agent/skills/install-skills.sh
+```
+
+This links them into `~/.agents/skills/`, `~/.codex/skills/`, `~/.claude/skills/`, `~/.cursor/skills/`, and `~/.gemini/skills/`. See `skills/README.md` for project-local install (`.agents/skills/`).
+
+| Skill | Purpose |
+|-------|---------|
+| `aire-agent-workflow` | Generate → validate → sbatch; MCP vs Slurm |
+| `aire-conda-environments` | Miniforge envs, quota, SBATCH activation |
+| `aire-github-installs` | GitHub pip/editable, CUDA extensions |
+| `aire-l40s-distributed-training` | DDP/FSDP on L40S, torchrun |
+| `aire-ddp-debugging` | NCCL hangs, `seff` tuning |
+| `aire-research-software-engineering` | Modular ML repo on `$SCRATCH` |
+
+**Codex CLI** — Install skills above; use `AGENTS.md` for persistent rules.
+
+**Gemini CLI** — Same skills under `~/.gemini/skills/`; `AGENTS.md` for context.
+
+**Cursor** — Same `SKILL.md` files under `~/.cursor/skills/` (not Cursor-specific).
 
 ## Contributing
 
@@ -500,6 +521,12 @@ Issues and pull requests are welcome on [GitHub](https://github.com/omariosc/air
 2. **Add a CLI route** in `bin/aire-agent` -- add a `case` entry that dispatches to your script.
 3. **Register with the MCP server** in `mcp/server.py` -- add a tool definition to the `TOOLS` list and a dispatch entry in `TOOL_DISPATCH`.
 4. **Add tests** in `tests/` -- write a `.bats` file for CLI tests and/or add MCP server test cases to `test_mcp_server.py`.
+
+### Adding a New Skill
+
+1. Create `skills/<skill-name>/SKILL.md` with YAML frontmatter (`name`, `description`) and agent-agnostic instructions (not tied to one IDE).
+2. Run `bash skills/install-skills.sh` to symlink into `~/.agents/skills/`, `~/.codex/skills/`, etc.
+3. List the skill in `skills/README.md` and `AGENTS.md`.
 
 ## License
 

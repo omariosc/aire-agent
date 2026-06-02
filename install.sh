@@ -110,7 +110,17 @@ done
 
 chmod +x mcp/server.py    2>/dev/null || true
 
+for f in skills/*.sh; do
+    [ -f "$f" ] && chmod +x "$f"
+done
+
 ok "Permissions set."
+
+# ── Install portable agent skills ───────────────────────────────────
+if [ -f "$INSTALL_DIR/skills/install-skills.sh" ]; then
+    info "Linking agent skills (Codex, Claude, Cursor, Gemini, .agents) ..."
+    bash "$INSTALL_DIR/skills/install-skills.sh" || warn "Skill install had warnings."
+fi
 
 # ── Done ────────────────────────────────────────────────────────────
 printf "\n"

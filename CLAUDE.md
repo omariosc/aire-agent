@@ -189,3 +189,24 @@ The primary users of this agent are from AIMS (AI in Medicine and Surgery) at th
 #SBATCH --mem=512G
 #SBATCH --time=08:00:00
 ```
+
+---
+
+## Agent Skills (all coding agents)
+
+Portable workflows are in `skills/` (standard `SKILL.md` format). Install for Codex, Claude Code, Gemini CLI, Cursor, etc.:
+
+```bash
+bash ~/.aire-agent/skills/install-skills.sh
+```
+
+| Skill | When to load |
+|-------|----------------|
+| `aire-agent-workflow` | Session start, job submission orchestration |
+| `aire-conda-environments` | Conda env create/update, SBATCH activation |
+| `aire-github-installs` | pip/git+https, editable installs, CUDA builds |
+| `aire-l40s-distributed-training` | Multi-GPU torchrun, DDP/FSDP on L40S |
+| `aire-ddp-debugging` | NCCL hangs, torchrun/Slurm mismatches |
+| `aire-research-software-engineering` | Repo scaffold, Hydra, `log_experiment` |
+
+Details: `skills/README.md`. Prefer **`templates/jobs/gpu-*.sh`** over conflicting `ntasks` examples in `ml-on-aire.md`.
