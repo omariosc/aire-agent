@@ -15,7 +15,7 @@ execute:
 # HTML-specific settings
 html:
   analytics:
-    google_analytics_id       : ""  # A GA id that can be used to track book views.
+    google_analytics_id       : "G-316J3DQCR9"  # A GA id that can be used to track book views.
   favicon                   : "./assets/img/logo/favicon-32x32.png"  # A path to a favicon image
   navbar_number_sections    : false  # Add a number to each section in your left navbar
   home_page_in_navbar       : true  # Whether to include your home page in the left Navigation Bar
