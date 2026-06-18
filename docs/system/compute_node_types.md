@@ -41,13 +41,15 @@ If your project requires additional resources, you can purchase nodes for priori
 
 ### Estimated node costs
 
-| Node Name                 | Cores per Node | Memory per Node | Processor                | Estimated Cost |
-| ------------------------- | -------------- | --------------- | ------------------------ | -------------- |
-| Aire Standard CPU Node    | 168            | 768GB           | 2 x AMD 9634 2.25GHz 84c | £ 12,315 +VAT  |
-| Aire High-Memory CPU Node | 168            | 2.3TB           | 2 x AMD 9634 2.25GHz 84c | £ 19,580 +VAT  |
-| Aire GPU Node             | 24             | 256GB           | 3 x NVIDIA L40S PCIe     | £ 14,600 +VAT  |
+| Node Name            | Cores per node | Memory per node | Processor                | Estimated cost    |
+| ---------------------| -------------- | --------------- | ------------------------ | ----------------- |
+| Standard CPU node    | 168            | 768GB           | 2 x AMD 9634 2.25GHz 84c | £39,651.00 + VAT  |
+| High-memory CPU node | 168            | 2.3TB           | 2 x AMD 9634 2.25GHz 84c | To be confirmed   |
+| GPU node             | 24             | 256GB           | 3 x NVIDIA L40S PCIe     | £41,755.00 + VAT  |
 
 Please reach out to Research IT to discuss your specific needs, obtain a quote, and explore how additional nodes can enhance your research project.
+
+**Note:** The estimated costs above are indicative and subject to market variation. The final price for any purchased node will be confirmed at the time of purchase.
 
 ### Requesting Research Software Engineering support
 

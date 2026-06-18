@@ -3,7 +3,7 @@ title: Aire Documentation
 author: University of Leeds Research Computing Team
 logo: ./assets/img/logo/logo.png
 email: ask-rc@leeds.ac.uk
-copyright: "2024"
+copyright: "2026"
 
 # Auto-exclude files not in the toc
 only_build_toc_files        : true
@@ -11,18 +11,6 @@ only_build_toc_files        : true
 # execute settings
 execute:
   execute_notebooks: auto
-
-# HTML-specific settings
-html:
-  analytics:
-    google_analytics_id       : "G-316J3DQCR9"  # A GA id that can be used to track book views.
-  favicon                   : "./assets/img/logo/favicon-32x32.png"  # A path to a favicon image
-  navbar_number_sections    : false  # Add a number to each section in your left navbar
-  home_page_in_navbar       : true  # Whether to include your home page in the left Navigation Bar
-  use_repository_button: true
-  use_issues_button: true
-  use_edit_page_button: true
-  baseurl                   : "https://arcdocs.leeds.ac.uk/aire"  # The base URL where your book will be hosted. Used for creating image previews and social links. e.g.: https://mypage.com/mybook/
 
 # Launch button settings
 launch_buttons:
@@ -47,3 +35,38 @@ parse:
     - deflist
     - html_admonition
     - colon_fence
+
+# HTML-specific settings
+html:
+  extra_footer: |
+      <p>
+      <a href="#" id="open_preferences_center">Update cookies preferences</a>
+      </p>
+      <!-- Cookie Consent by TermsFeed https://www.TermsFeed.com -->
+      <script type="text/javascript" src="//www.termsfeed.com/public/cookie-consent/4.2.0/cookie-consent.js" charset="UTF-8"></script>
+      <script type="text/javascript" charset="UTF-8">
+      document.addEventListener('DOMContentLoaded', function () {
+      cookieconsent.run({"notice_banner_type":"simple","consent_type":"express","palette":"dark","language":"en","page_load_consent_levels":["strictly-necessary"],"notice_banner_reject_button_hide":false,"preferences_center_close_button_hide":false,"page_refresh_confirmation_buttons":false,"website_name":"Aire User Documentation","website_privacy_policy_url":"https://comms.leeds.ac.uk/websites/policy-on-privacy-and-cookie-notices/"});
+      });
+      </script>
+
+      <!-- Google Analytics -->
+      <script type="text/plain" data-cookie-consent="tracking" async src="https://www.googletagmanager.com/gtag/js?id=G-RZDCG2LMBZ"></script>
+      <script type="text/plain" data-cookie-consent="tracking">
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-RZDCG2LMBZ');
+      </script>
+      <!-- end of Google Analytics-->
+
+      <noscript>Free cookie consent management tool by <a href="https://www.termsfeed.com/">TermsFeed Generator</a></noscript>
+      <!-- End Cookie Consent by TermsFeed https://www.TermsFeed.com -->
+  favicon                   : "./assets/img/logo/favicon-32x32.png"  # A path to a favicon image
+  navbar_number_sections    : false  # Add a number to each section in your left navbar
+  home_page_in_navbar       : true  # Whether to include your home page in the left Navigation Bar
+  use_repository_button: true
+  use_issues_button: true
+  use_edit_page_button: true
+  baseurl                   : "https://arcdocs.leeds.ac.uk/aire"  # The base URL where your book will be hosted. Used for creating image previews and social links. e.g.: https://mypage.com/mybook/
