@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+title: >-
+  aire-agent: an AI toolkit for the University of Leeds AIRE HPC cluster
+message: 'If you use this software, please cite it as below.'
+type: software
+authors:
+  - given-names: Omar
+    family-names: Choudhry
+    affiliation: School of Computing, University of Leeds
+    website: 'https://omarchoudhry.co.uk'
+repository-code: 'https://github.com/omariosc/aire-agent'
+url: 'https://arcdocs.leeds.ac.uk/aire/intro.html'
+abstract: >-
+  An AI-powered toolkit for the University of Leeds AIRE high-performance
+  computing cluster: shell tools, an MCP server and agent configuration for
+  Claude Code, Codex and the Gemini CLI, covering Slurm job submission, module
+  handling and PyTorch environments.
+keywords:
+  - hpc
+  - slurm
+  - ai-assistant
+  - mcp
+  - claude-code
+  - pytorch
+  - university-of-leeds
+license: MIT
