@@ -102,7 +102,42 @@ These are jobs that run across multiple nodes using a Message Passing Interface 
 module load openmpi
 
 # Run the job
-mpirun ./example.bin
+srun ./example.bin
+```
+
+```{tip}
+On Aire, `srun` is Slurm's native launcher and is generally recommended for launching MPI applications. It uses the resources allocated by Slurm and works well for multi-node jobs.
+
+Some applications that invoke `mpiexec` or `mpirun` internally may report errors such as "There are not enough slots available" despite the requested resources having been allocated. Where the application allows the MPI launcher to be configured, consider using `srun` instead.
+
+If you are unsure which launcher your application expects, consult the software documentation or contact Research IT.
+```
+
+```{admonition} Example: Running Paramotopy with Bertini
+Paramotopy launches the parallel `bertini` executables internally. When running under Slurm, the main Paramotopy process should be started as a single task, while Paramotopy should be configured to use `srun` to launch the parallel MPI executables.
+
+For example, start Paramotopy with a single task:
+
+    mpiexec -n 1 paramotopy <input_file>
+
+Then update the Paramotopy parallelism configuration to use `srun` instead of the default `mpiexec` from:
+
+    architecture mpiexec
+
+to:
+
+    architecture srun
+
+With this configuration, Paramotopy will launch the parallel executables using commands similar to:
+
+    srun -n 336 bertini
+    srun -n 336 step2
+
+rather than:
+
+    mpiexec -n 336 bertini
+
+This ensures that the MPI processes are launched using the resources allocated by Slurm, which can help avoid launcher-related errors such as reporting insufficient available slots for multi-node jobs.
 ```
 
 ## AI/ML jobs on GPU

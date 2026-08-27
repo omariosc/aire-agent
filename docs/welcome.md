@@ -8,7 +8,6 @@ New users may want to start by reading the [Getting Started](page:getting-starte
 
 ```{admonition} Upgrading from ARC3 and ARC4
 Aire is the new HPC system replacing the ARC3 and ARC4 systems. The new system significantly increases compute capacity for the community while delivering a modern, maintainable software and programming environment. ARC3 and ARC4 are now completely unavailable, and all data stored on them that has not been moved off has been lost.
-
 ```
 
 :::{seealso}

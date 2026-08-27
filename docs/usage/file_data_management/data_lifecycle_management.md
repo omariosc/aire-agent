@@ -1,4 +1,4 @@
-# Data lifecycle management
+# Data lifecycle management (still under development)
 
 :::{warning}
 This page is still being updated. If you have any feedback regarding this section, please contact the RSE team.
@@ -8,26 +8,26 @@ This page is still being updated. If you have any feedback regarding this sectio
 
 - Scratch Storage
 
-  * Purpose: Temporary storage for data generated during active job execution.
-  * Location: `/mnt/scratch/users/`
-  * Retention: Data in scratch storage is not automatically deleted and is not backed up. Users are responsible for managing their scratch data.
-  * Quota: A storage quota is applied to scratch directories. Exceeding your quota may prevent you from saving or moving additional data. Ensure that your data usage stays within the allocated limit.
-  * Best Use: Store intermediate files and large datasets during active computations. Data should be moved to a more permanent storage location once it is no longer required in scratch storage.
+  - Purpose: Temporary storage for data generated during active job execution.
+  - Location: `/mnt/scratch/users/`
+  - Retention: Data in scratch storage is not automatically deleted and is not backed up. Users are responsible for managing their scratch data.
+  - Quota: A storage quota is applied to scratch directories. Exceeding your quota may prevent you from saving or moving additional data. Ensure that your data usage stays within the allocated limit.
+  - Best Use: Store intermediate files and large datasets during active computations. Data should be moved to a more permanent storage location once it is no longer required in scratch storage.
 
 - Home Directories
 
-  * Purpose: Personal storage for code, configurations, and small datasets.
-  * Location: `/users/<username>`
-  * Retention: Data in home directories is occasionally backed up by the system. However, backups can only be restored within 7 days of the backup date.
-  * Quota: A default quota of 15GB is applied to home directories. Users who require more space can request an increase to their storage quota.
-  * Best Use: Store essential files, scripts, and results that need to be preserved long-term.
+  - Purpose: Personal storage for code, configurations, and small datasets.
+  - Location: `/users/<username>`
+  - Retention: Data in home directories is occasionally backed up by the system. However, backups can only be restored within 7 days of the backup date.
+  - Quota: A default quota of 15GB is applied to home directories. Users who require more space can request an increase to their storage quota.
+  - Best Use: Store essential files, scripts, and results that need to be preserved long-term.
 
 - Shared Project/Research Storage
 
-  * Purpose: Collaborative storage for teams or research groups to share large datasets and results.
-  * Location: TBC
-  * Retention: Managed based on project needs and user policies.
-  * Best Use: Store large datasets shared between team members or across projects.
+  - Purpose: Collaborative storage for teams or research groups to share large datasets and results.
+  - Location: TBC
+  - Retention: Managed based on project needs and user policies.
+  - Best Use: Store large datasets shared between team members or across projects.
 
 ## Best Practices for Data Management
 
@@ -40,7 +40,7 @@ This page is still being updated. If you have any feedback regarding this sectio
       ├── results/    # Store the output files and results here
       └── README.txt  # Key details about the project, data, and any relevant information
   ```
-  * README.txt Example
+  - README.txt Example
 
   > Project: HPC Data Analysis
   >
@@ -54,16 +54,16 @@ This page is still being updated. If you have any feedback regarding this sectio
   > 1. Make sure to regularly back up the data in /data and /results.
   > 2. For any questions, contact [Your Name] at [Your Email].
 
-- Efficient Storage Usage: 
+- Efficient Storage Usage:
 
-  * Regularly clean up your scratch storage to ensure you don't exceed your quota.
-  * Compress large datasets using tools like `tar` or `gzip` to reduce storage consumption.
-  * Remove any obsolete data from scratch storage to free up space for new work.
+  - Regularly clean up your scratch storage to ensure you don't exceed your quota.
+  - Compress large datasets using tools like `tar` or `gzip` to reduce storage consumption.
+  - Remove any obsolete data from scratch storage to free up space for new work.
 
 - Data Transfer
 
-  * Use `rsync` and `scp` for transferring data securely and efficiently.
-  * For large datasets, consider using parallel data transfer tools like Globus for faster, multi-threaded transfers.
+  - Use `rsync` and `scp` for transferring data securely and efficiently.
+  - For large datasets, consider using parallel data transfer tools like Globus for faster, multi-threaded transfers.
 
 - Data Backup
 - Version Control

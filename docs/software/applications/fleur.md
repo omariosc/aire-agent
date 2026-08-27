@@ -11,11 +11,11 @@ Fleur is a tool for calculating material properties with density functional theo
 
 Note that there are two versions available on Aire; with and without support for HDF5. For more intensive calculations, it is likely that the HDF5 version will be faster, with the opposite true for simpler runs.
 
-
 ## How to run a job
 
 A fleur job generally runs in two steps. First, an .xml-format input file is generated from a human readable text file, using the input generator. This can be performed on a login node, as it is not computationally intensive. Please see the [tutorial](https://www.flapw.de/MaX-8.0/future/F1/) for further information.
-```plaintext
+
+```bash
 [user@login1[aire] my_folder]$ module load fleur
 Loading fleur/max8_hdf5/openmpi-5.0.5-gcc-14.2.0_lapack-3.12.0
   Loading requirement: gcc/14.2.0 lapack/3.12.0 openmpi/5.0.5/gcc-14.2.0
@@ -43,8 +43,6 @@ Fleur supports distributed-memory parallelism with OpenMPI. To run a Fleur job, 
 
 # Load Fleur module and dependencies
 module load fleur/max8_hdf5
-
-
 
 # Run the job using MPIrun, passing in number of tasks
 mpirun -n $SLURM_NTASKS_PER_NODE fleur_MPI

@@ -1,25 +1,18 @@
-# Privacy and cookies
+# Privacy and Cookies
 
-Privacy notice for [Aire User Documentation](https://arcdocs.leeds.ac.uk/aire)
-This privacy notice has been updated in line with the General Data Protection Regulation. <a href="#" id="open_preferences_center">You can manage your cookie settings here. </a>
-
+Privacy notice for [Aire User Documentation](https://arcdocs.leeds.ac.uk/aire). This privacy notice has been updated in line with the General Data Protection Regulation. You can <a href="#" id="open_preferences_center">manage your cookie settings here</a>.
 
 ## 1. Purpose of this Notice
 
-This Notice tells you how the University of Leeds (University) [add any other organisation here. For example if your website is hosted externally or if data is collected for us by an external organisation those details must be included here] will collect and use your personal data when you access this website. The University [see above regarding joint collection] is a “controller” of this personal data for the purposes of the data protection legislation. 
-Note that additional information will be provided where you are requested to enter personal information and this will vary between our various websites.  (Information will be provided through the relevant privacy notice for that website).
-It is important that you read this Notice together with any other privacy notice we provide on specific occasions when we are collecting or processing personal data about you so that you are fully aware of how and why we are using your data.  This Notice supplements the other notices and is not intended to override them.
-
+This Notice tells you how the University of Leeds (University) will collect and use your personal data when you access this website. The Universityis a “controller” of this personal data for the purposes of the data protection legislation. Note that additional information will be provided where you are requested to enter personal information and this will vary between our various websites. It is important that you read this Notice together with any other privacy notice we provide on specific occasions when we are collecting or processing personal data about you so that you are fully aware of how and why we are using your data. This Notice supplements the other notices and is not intended to override them.
 
 ## 2. Changes to this Notice
 
-We keep the information provided in this Notice under review. This Notice may be updated from time to time. If we make any substantial updates, we will draw these to your attention.
-We will not use your personal data in any manner that is incompatible with the purpose for which the data were collected originally, unless we have obtained your consent to that additional use.
+We keep the information provided in this Notice under review. This Notice may be updated from time to time. If we make any substantial updates, we will draw these to your attention. We will not use your personal data in any manner that is incompatible with the purpose for which the data were collected originally, unless we have obtained your consent to that additional use.
 
 ## 3. Anything you are not clear about
 
-If there is anything you are unclear about, please contact our Data Protection Officer, who shall be happy to answer any queries you may have concerning this Notice or the way in which we process your personal data.
-The Data Protection Officer's contact details are provided at the end of this Notice.
+If there is anything you are unclear about, please contact our Data Protection Officer, who shall be happy to answer any queries you may have concerning this Notice or the way in which we process your personal data. The Data Protection Officer's contact details are provided at the end of this Notice.
 
 ## 4. Purpose of processing your data
 
@@ -35,14 +28,11 @@ Your personal data that you have provided will not routinely be sent to third pa
 
 ## 7. Data retention
 
-The University’s policies on retaining data for prospective and current students, staff and job applicants are detailed in our [data retention policy.](http://www.leeds.ac.uk/secretariat/documents/retention_policies.pdf)
+The University’s policies on retaining data for prospective and current students, staff and job applicants are detailed in our [data retention policy](http://www.leeds.ac.uk/secretariat/documents/retention_policies.pdf).
 
 In other cases, for example, if you subscribe to news or events, any retention of data will be made clear at the point of collection.
 
 ## 8. Cookies
-
-
-<a href="#" id="open_preferences_center">You can manage your cookie settings here. </a>
 
 Cookies are small text files that are placed on your device by websites that you visit.
 
@@ -57,22 +47,21 @@ We use cookies for the following purposes:
 | Essential | cookieconsent_status | Determined whether or not the cookie popup has been accepted. | Persistent cookie. Expires after 12 months. |
 | Performance and advertising | __utma, __utmb, __utmc, __utmv, __utmz, __ga, __gat, __nid | These cookies are used to collect information about how visitors use our website. We use the information to compile reports and to help us improve the site. These cookies are also used to track users’ interests and then provide targeted advertising on other websites. The cookies collect information in an anonymous form, including the number of visitors to the site, where visitors have come to the site from and the pages they visited. | [Google privacy policy](https://policies.google.com/privacy?hl=en-GB&gl=uk), [Google analytics](https://support.google.com/analytics/answer/6004245), [Google analytics terms of service](https://www.google.com/analytics/terms/gb.html), [Google tag manager terms of service](https://www.google.com/analytics/tag-manager/use-policy/), [Universal Analytics opt-out browser add-on](https://tools.google.com/dlpage/gaoptout) |
 
+You can <a href="#" id="open_preferences_center">manage your cookie settings here</a>.
+
 ### Third party cookies and tracking
 
 If you share content from our website through other websites, for example Facebook or Twitter, cookies or a form of tracking may be used by these services and you need to manage your privacy via your account (and not through our site).
 
 ### Manage your cookies and privacy
 
-You can opt out of non-essential cookies. <a href="#" id="open_preferences_center">You can manage your cookie settings here. </a>
+You can opt out of non-essential cookies. You can <a href="#" id="open_preferences_center">manage your cookie settings here</a>.
 
-
-You can also manage your privacy settings, including cookies, through your browser settings.
-Further information about cookies can be found on the Information Commissioner's Office website.
+You can also manage your privacy settings, including cookies, through your browser settings. Further information about cookies can be found on the Information Commissioner's Office website.
 
 ## 9. Your duty to inform us of changes
 
-It is important that the personal data the University holds about you is accurate and current. Please keep us informed if the personal data you have provided to us needs to be updated.
-[Contact us](http://www.leeds.ac.uk/info/5000/about/196/contact_us)
+It is important that the personal data the University holds about you is accurate and current. Please keep us informed if the personal data you have provided to us needs to be updated. You can [contact us here](http://www.leeds.ac.uk/info/5000/about/196/contact_us).
 
 ## 10.  Your rights as a data subject
 
@@ -88,11 +77,10 @@ Under the GDPR, in certain circumstances, you have the right to:
 - in certain cases not be subject to a decision based solely on automated decision making
 - lodge a complaint with a supervisory authority
 
-# 11.  Queries and complaints
+# 11. Queries and complaints
 
-If you have any queries or concerns relating to this privacy notice or the way your data is being processed through this website then please contact the University’s Data Protection Officer, Alice Temple on dpo@leeds.ac.uk or by post to University of Leeds, 11.72 EC Stoner Building, Leeds LS2 9JT, UK.
+If you have any queries or concerns relating to this privacy notice or the way your data is being processed through this website then please contact the University’s Data Protection Officer, [Alice Temple](mailto:dpo@leeds.ac.uk), or by post to University of Leeds, 11.72 EC Stoner Building, Leeds LS2 9JT, UK.
 
 The University’s main telephone number is +44 (0) 113 2431751.
 
-The UK’s regulator for the DPA and GDPR is the Information Commissioner’s Office (ICO). The University is registered as a Data Controller with the ICO
-Should you be dissatisfied with our handling of your concerns you have the right to complain to a supervisory authority. In the case of the UK this is the Information Commissioner’s Office and details can be found at https://ico.org.uk.
+The UK’s regulator for the DPA and GDPR is the Information Commissioner’s Office (ICO). The University is registered as a Data Controller with the ICO. Should you be dissatisfied with our handling of your concerns you have the right to complain to a supervisory authority. In the case of the UK this is the Information Commissioner’s Office and details can be found at <https://ico.org.uk>.
