@@ -1,6 +1,4 @@
-(dependency-management)=
-
-# Dependency Management
+# Managing Software Environments
 
 ```{note}
 Research IT has determined that, due to licensing restrictions, Anaconda must no longer be used. Miniforge is the recommended alternative for Python environments on Aire.
@@ -9,8 +7,7 @@ This guidance specifically discusses Conda dependency management, which can be u
 
 This does not cover alternative package management and virtual environment solutions like `renv`, `pixi`, or `uv pip`.
 
-For instructions on submitting a job using Miniforge, please see the [Miniforge documentation](https://arcdocs.leeds.ac.uk/aire/software/interpreters/miniforge.html)
-
+For instructions on submitting a job using Miniforge, please see the [Miniforge section](../software/interpreters/miniforge.md).
 ```
 
 Good dependency management makes your research computing:
@@ -36,6 +33,7 @@ For some packages, you may also need to use `pip`; we detail how this can be don
 - **Environments must be stored in your `home` directory and all research output must be stored in `/mnt/scratch/users`**: misuse of the system can affect performance for **all users** and will lead to your jobs being stopped.
 
 (creating-environment)=
+
 ## Create a new environment
 
 In order to create a new conda environment, you need to create an environment YAML file, with the file ending `.yaml`.
@@ -79,7 +77,7 @@ When using conda to install R packages, add r- before the R package name. For in
 
 If you are creating an R environment, your  file might look like this:
 
-```
+```yaml
 name: my-env-name
 
 dependencies:
@@ -94,7 +92,6 @@ Please follow all the other general instructions; creating an R environment is o
 If you need to include Python `pip` dependencies in your Conda environment, you can add these to your environment YAML file as follows:
 
 ```yaml
-
 name: env-with-pip-dependencies
 
 dependencies:
@@ -105,7 +102,6 @@ dependencies:
   - pip
   - pip:
     - black
-
 ```
 
 ## Updating an environment or adding new packages

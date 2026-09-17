@@ -36,7 +36,8 @@ chapters:
     - file: usage/file_data_management/filesystem_quotas
     - file: usage/file_data_management/data_transfer
     - file: usage/file_data_management/data_sharing
-  - file: usage/dependency_management
+  - file: usage/software_env_management
+  - file: usage/teaching
   #- file: usage/use_of_containers
 # ===== Software on Aire ============================
 - file: software/start
@@ -86,8 +87,7 @@ chapters:
     sections:
   #   - file: software/interpreters/julia
     - file: software/interpreters/miniforge
-  #   - file: software/interpreters/python
-  #   - file: software/interpreters/r
+    - file: software/interpreters/r
   - file: software/tools/start
     sections:
     - file: software/tools/apptainer
