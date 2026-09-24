@@ -8,3 +8,4 @@ Before diving into the Aire HPC system, it's important to have a basic understan
 Explore the sections below to learn more about Aire:
 
 ```{tableofcontents}
+:::
